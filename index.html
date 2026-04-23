@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>央企政策智能助手 · 建筑行业版</title>
+<style>
+  :root {
+    --red: #c0392b; --red-dark: #96281b; --red-light: #f9e4e2;
+    --gold: #d4a017; --gold-light: #fdf3d0;
+    --blue: #1a5276; --blue-mid: #2471a3; --blue-light: #d6eaf8;
+    --green: #1e8449; --green-light: #d5f5e3;
+    --purple: #6c3483; --purple-light: #e8d8f5;
+    --gray-bg: #f4f6f8; --gray-border: #dce1e7;
+    --text-main: #1a1a2e; --text-sub: #555f6e; --text-light: #8a96a3;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08); --shadow-hover: 0 6px 24px rgba(0,0,0,0.14);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; background: var(--gray-bg); color: var(--text-main); min-height: 100vh; }
+
+  /* ===== 顶栏 ===== */
+  .header { background: linear-gradient(135deg,#c0392b 0%,#96281b 50%,#1a3a5c 100%); color:#fff; padding:0 32px; display:flex; align-items:center; justify-content:space-between; height:64px; position:sticky; top:0; z-index:999; box-shadow:0 2px 16px rgba(0,0,0,0.25); }
+  .header-left { display:flex; align-items:center; gap:14px; }
+  .header-logo { width:40px; height:40px; background:rgba(255,255,255,0.15); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+  .header-title { font-size:20px; font-weight:700; letter-spacing:1px; }
+  .header-sub { font-size:12px; opacity:0.75; margin-top:2px; }
+  .header-right { display:flex; align-items:center; gap:16px; }
+  .header-time { font-size:13px; opacity:0.85; }
+  .btn-refresh { background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:7px 18px; border-radius:20px; cursor:pointer; font-size:13px; transition:all .2s; }
+  .btn-refresh:hover { background:rgba(255,255,255,0.3); }
+
+  /* ===== 搜索栏（新增）===== */
+  .search-bar { background:#fff; border-bottom:2px solid var(--blue-light); padding:10px 32px; display:flex; align-items:center; gap:12px; }
+  .search-wrap { flex:1; position:relative; max-width:600px; }
+  .search-input { width:100%; padding:9px 42px 9px 16px; border:1.5px solid var(--gray-border); border-radius:24px; font-size:14px; color:var(--text-main); background:var(--gray-bg); outline:none; transition:border-color .2s; }
+  .search-input:focus { border-color:var(--blue-mid); background:#fff; box-shadow:0 0 0 3px rgba(36,113,163,0.12); }
+  .search-icon { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:16px; cursor:pointer; color:var(--text-light); }
+  .search-icon:hover { color:var(--blue-mid); }
+  .search-clear { display:none; position:absolute; right:36px; top:50%; transform:translateY(-50%); font-size:14px; cursor:pointer; color:var(--text-light); }
+  .search-clear.show { display:block; }
+  .search-hint { font-size:12px; color:var(--text-light); white-space:nowrap; }
+  .search-tags { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .stag { font-size:11px; padding:3px 10px; border-radius:12px; background:var(--blue-light); color:var(--blue); cursor:pointer; border:1px solid transparent; transition:all .15s; }
+  .stag:hover { background:var(--blue-mid); color:#fff; }
+
+  /* ===== 搜索结果层（新增）===== */
+  .search-result-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:800; }
+  .search-result-overlay.show { display:block; }
+  .search-result-panel { position:fixed; top:0; right:0; width:560px; max-width:96vw; height:100vh; background:#fff; z-index:801; box-shadow:-8px 0 32px rgba(0,0,0,0.18); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .3s; }
+  .search-result-panel.show { transform:translateX(0); }
+  .srp-header { padding:18px 20px 14px; border-bottom:1px solid var(--gray-border); display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg,#1a3a5c,#2471a3); color:#fff; }
+  .srp-title { font-size:16px; font-weight:700; }
+  .srp-close { font-size:22px; cursor:pointer; opacity:0.8; }
+  .srp-close:hover { opacity:1; }
+  .srp-body { flex:1; overflow-y:auto; padding:16px; }
+  .srp-count { font-size:12px; color:var(--text-light); margin-bottom:14px; padding:8px 12px; background:var(--gray-bg); border-radius:6px; }
+  .srp-item { background:#fff; border:1px solid var(--gray-border); border-radius:8px; padding:14px 16px; margin-bottom:10px; cursor:pointer; transition:all .2s; border-left:4px solid var(--blue-mid); }
+  .srp-item:hover { box-shadow:var(--shadow-hover); border-left-color:var(--red); }
+  .srp-item-title { font-size:14px; font-weight:600; margin-bottom:6px; line-height:1.5; }
+  .srp-item-title mark { background:#fff3cd; color:var(--text-main); padding:0 2px; border-radius:2px; }
+  .srp-item-snippet { font-size:12px; color:var(--text-sub); line-height:1.6; margin-bottom:8px; }
+  .srp-item-snippet mark { background:#fff3cd; color:var(--text-main); }
+  .srp-item-meta { display:flex; gap:10px; font-size:11px; color:var(--text-light); flex-wrap:wrap; }
+  .srp-empty { text-align:center; padding:60px 20px; color:var(--text-light); }
+  .srp-empty-icon { font-size:48px; margin-bottom:12px; }
+
+  /* ===== 时间选择器横条 ===== */
+  .time-bar { background:#fff; border-bottom:1px solid var(--gray-border); padding:12px 32px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+  .time-bar label { font-size:13px; color:var(--text-sub); font-weight:500; }
+  .time-input { border:1px solid var(--gray-border); border-radius:6px; padding:6px 12px; font-size:13px; color:var(--text-main); background:var(--gray-bg); cursor:pointer; }
+  .time-shortcuts { display:flex; gap:8px; }
+  .time-btn { padding:5px 14px; border-radius:16px; border:1px solid var(--gray-border); background:#fff; cursor:pointer; font-size:12px; color:var(--text-sub); transition:all .2s; }
+  .time-btn:hover, .time-btn.active { background:var(--red); color:#fff; border-color:var(--red); }
+  .btn-query { background:var(--red); color:#fff; padding:7px 22px; border-radius:6px; border:none; cursor:pointer; font-size:14px; font-weight:600; transition:background .2s; margin-left:auto; }
+  .btn-query:hover { background:var(--red-dark); }
+
+  /* ===== 主布局 ===== */
+  .main { padding:24px 32px; display:flex; gap:20px; min-height:calc(100vh - 160px); }
+  .sidebar { width:220px; flex-shrink:0; }
+  .content { flex:1; min-width:0; }
+
+  /* ===== 侧边导航 ===== */
+  .nav-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 0; position:sticky; top:148px; }
+  .nav-title { font-size:12px; color:var(--text-light); padding:0 16px 10px; font-weight:600; letter-spacing:1px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; cursor:pointer; font-size:14px; color:var(--text-sub); transition:all .15s; border-left:3px solid transparent; }
+  .nav-item:hover { background:var(--gray-bg); color:var(--text-main); }
+  .nav-item.active { background:var(--red-light); color:var(--red); border-left-color:var(--red); font-weight:600; }
+  .nav-icon { font-size:16px; width:20px; text-align:center; }
+  .nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:11px; padding:1px 7px; border-radius:10px; }
+  .nav-badge.purple { background:var(--purple); }
+
+  /* ===== 内容区 ===== */
+  .section { display:none; }
+  .section.active { display:block; }
+
+  /* ===== 概览卡片 ===== */
+  .stat-row { display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+  .stat-card { flex:1; min-width:130px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 20px; display:flex; flex-direction:column; gap:6px; transition:box-shadow .2s; }
+  .stat-card:hover { box-shadow:var(--shadow-hover); }
+  .stat-label { font-size:12px; color:var(--text-light); font-weight:500; }
+  .stat-num { font-size:28px; font-weight:700; }
+  .stat-num.red { color:var(--red); } .stat-num.blue { color:var(--blue-mid); }
+  .stat-num.green { color:var(--green); } .stat-num.gold { color:var(--gold); }
+  .stat-num.purple { color:var(--purple); }
+  .stat-desc { font-size:12px; color:var(--text-light); }
+
+  /* ===== 通用块标题 ===== */
+  .block-title { font-size:16px; font-weight:700; color:var(--text-main); border-left:4px solid var(--red); padding-left:12px; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .block-title .tag { font-size:11px; background:var(--red-light); color:var(--red); padding:2px 8px; border-radius:4px; font-weight:500; }
+
+  /* ===== 政策卡片 ===== */
+  .policy-list { display:flex; flex-direction:column; gap:12px; margin-bottom:24px; }
+  .policy-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 20px; border-left:5px solid var(--blue-mid); transition:all .2s; cursor:pointer; }
+  .policy-card:hover { box-shadow:var(--shadow-hover); transform:translateY(-1px); }
+  .policy-card.urgent { border-left-color:var(--red); }
+  .policy-card.important { border-left-color:var(--gold); }
+  .policy-card.standard { border-left-color:var(--blue-mid); }
+  .policy-card.positive { border-left-color:var(--green); }
+  .policy-card.tax { border-left-color:var(--purple); }
+  .policy-header { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+  .policy-title { font-size:15px; font-weight:600; color:var(--text-main); flex:1; line-height:1.5; }
+  .policy-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .ptag { font-size:11px; padding:2px 8px; border-radius:4px; font-weight:500; }
+  .ptag-red { background:var(--red-light); color:var(--red); }
+  .ptag-blue { background:var(--blue-light); color:var(--blue); }
+  .ptag-gold { background:var(--gold-light); color:#856a00; }
+  .ptag-green { background:var(--green-light); color:var(--green); }
+  .ptag-purple { background:var(--purple-light); color:var(--purple); }
+  .policy-summary { font-size:13px; color:var(--text-sub); line-height:1.7; margin-bottom:10px; }
+  .policy-meta { display:flex; align-items:center; gap:16px; font-size:12px; color:var(--text-light); flex-wrap:wrap; }
+  .impact-badge { margin-left:auto; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; }
+  .impact-high { background:#fde8e8; color:#c0392b; }
+  .impact-mid { background:#fef9e7; color:#9a7d0a; }
+  .impact-low { background:#eafaf1; color:#1e8449; }
+  .impact-tax { background:var(--purple-light); color:var(--purple); }
+
+  /* ===== 分析面板 ===== */
+  .analysis-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+  .analysis-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; }
+  .analysis-card-title { font-size:14px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .analysis-item { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--gray-border); font-size:13px; }
+  .analysis-item:last-child { border-bottom:none; }
+  .analysis-dot { width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+  .dot-red { background:var(--red); } .dot-gold { background:var(--gold); }
+  .dot-blue { background:var(--blue-mid); } .dot-green { background:var(--green); }
+  .dot-purple { background:var(--purple); }
+  .analysis-text { flex:1; color:var(--text-sub); line-height:1.6; }
+  .analysis-text strong { color:var(--text-main); }
+
+  /* ===== 税务提示框 ===== */
+  .tax-alert { background:linear-gradient(135deg,#6c3483,#7d3c98); color:#fff; border-radius:var(--radius); padding:16px 20px; margin-bottom:20px; display:flex; align-items:flex-start; gap:14px; }
+  .tax-alert-icon { font-size:24px; flex-shrink:0; margin-top:2px; }
+  .tax-alert-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+  .tax-alert-desc { font-size:13px; opacity:0.9; line-height:1.6; }
+  .tax-alert-tags { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .tax-alert-tag { font-size:11px; background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:12px; }
+
+  /* ===== 税务分类导航 ===== */
+  .tax-filter { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+
+  /* ===== 趋势 ===== */
+  .trend-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+  .trend-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; text-align:center; transition:all .2s; }
+  .trend-card:hover { box-shadow:var(--shadow-hover); transform:translateY(-2px); }
+  .trend-icon { font-size:32px; margin-bottom:8px; }
+  .trend-name { font-size:14px; font-weight:700; margin-bottom:6px; }
+  .trend-score { font-size:22px; font-weight:700; margin-bottom:6px; }
+  .trend-bar-bg { background:var(--gray-border); border-radius:4px; height:6px; margin-bottom:6px; }
+  .trend-bar-fill { height:6px; border-radius:4px; transition:width 1s ease; }
+  .trend-desc { font-size:12px; color:var(--text-light); line-height:1.5; }
+
+  /* ===== 信息来源 ===== */
+  .source-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
+  .source-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px; display:flex; flex-direction:column; gap:6px; transition:all .2s; }
+  .source-card:hover { box-shadow:var(--shadow-hover); }
+  .source-name { font-size:13px; font-weight:700; }
+  .source-url { font-size:11px; color:var(--blue-mid); text-decoration:none; }
+  .source-url:hover { text-decoration:underline; }
+  .source-type { font-size:11px; padding:2px 7px; border-radius:4px; width:fit-content; }
+
+  /* ===== 加载动画 ===== */
+  .loading-overlay { position:fixed; inset:0; background:rgba(255,255,255,0.9); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; gap:20px; }
+  .loading-overlay.show { display:flex; }
+  .spinner { width:48px; height:48px; border:4px solid var(--gray-border); border-top-color:var(--red); border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-text { font-size:15px; color:var(--text-sub); font-weight:600; }
+  .loading-steps { font-size:13px; color:var(--text-light); }
+
+  /* ===== 报告头 ===== */
+  .report-header { background:linear-gradient(135deg,#1a3a5c,#2471a3); color:#fff; border-radius:var(--radius); padding:24px 28px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; }
+  .report-date { font-size:13px; opacity:0.8; margin-bottom:6px; }
+  .report-title { font-size:20px; font-weight:700; margin-bottom:6px; }
+  .report-subtitle { font-size:13px; opacity:0.8; }
+  .report-stamp { width:80px; height:80px; border:3px solid rgba(255,255,255,0.4); border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:11px; opacity:0.7; flex-shrink:0; }
+  .report-stamp .big { font-size:18px; font-weight:700; }
+
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--gray-border); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:#aaa; }
+
+  @media (max-width:900px) {
+    .main { flex-direction:column; padding:16px; }
+    .sidebar { width:100%; position:static; }
+    .nav-card { display:flex; flex-wrap:wrap; padding:10px; }
+    .nav-item { border-left:none; border-bottom:2px solid transparent; padding:8px 10px; font-size:13px; }
+    .nav-item.active { border-bottom-color:var(--red); border-left:none; }
+    .analysis-grid { grid-template-columns:1fr; }
+    .trend-grid { grid-template-columns:repeat(2,1fr); }
+    .source-grid { grid-template-columns:1fr 1fr; }
+    .search-result-panel { width:100vw; }
+  }
+  @media (max-width:600px) {
+    .header { padding:0 16px; }
+    .time-bar { padding:10px 16px; }
+    .search-bar { padding:10px 16px; }
+    .trend-grid { grid-template-columns:1fr; }
+    .source-grid { grid-template-columns:1fr; }
+    .stat-row { flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">🏛️</div>
+    <div>
+      <div class="header-title">央企政策智能助手</div>
+      <div class="header-sub">建筑行业专版 · 中铁上海工程局系统 · 领导干部专用</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-time" id="liveTime"></div>
+    <button class="btn-refresh" onclick="refreshData()">⟳ 刷新数据</button>
+  </div>
+</div>
+
+<!-- 搜索栏（新增）-->
+<div class="search-bar">
+  <div class="search-wrap">
+    <input class="search-input" id="searchInput" type="text" placeholder="🔍 关键词搜索：如"增值税""清欠""甲供工程""智能建造"…" oninput="onSearchInput()" onkeydown="if(event.key==='Enter')doSearch()" />
+    <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
+    <span class="search-icon" onclick="doSearch()">⏎</span>
+  </div>
+  <div class="search-tags">
+    <span class="search-hint">热门：</span>
+    <span class="stag" onclick="quickSearch('增值税')">增值税</span>
+    <span class="stag" onclick="quickSearch('清欠')">清欠</span>
+    <span class="stag" onclick="quickSearch('甲供工程')">甲供工程</span>
+    <span class="stag" onclick="quickSearch('跨地区预缴')">跨地区预缴</span>
+    <span class="stag" onclick="quickSearch('智能建造')">智能建造</span>
+    <span class="stag" onclick="quickSearch('专项债')">专项债</span>
+    <span class="stag" onclick="quickSearch('城市更新')">城市更新</span>
+  </div>
+</div>
+
+<!-- 时间选择器 -->
+<div class="time-bar">
+  <label>📅 查询时段：</label>
+  <input type="date" class="time-input" id="dateStart" />
+  <span style="color:#aaa;font-size:13px">至</span>
+  <input type="date" class="time-input" id="dateEnd" />
+  <div class="time-shortcuts">
+    <button class="time-btn" onclick="setRange(7,this)">近7天</button>
+    <button class="time-btn active" onclick="setRange(30,this)">近30天</button>
+    <button class="time-btn" onclick="setRange(90,this)">近90天</button>
+    <button class="time-btn" onclick="setRange(180,this)">近半年</button>
+  </div>
+  <button class="btn-query" onclick="runQuery()">🔍 获取政策信息</button>
+</div>
+
+<!-- 加载遮罩 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">正在采集政策信息……</div>
+  <div class="loading-steps" id="loadingStep">连接国资委官网</div>
+</div>
+
+<!-- 搜索结果侧滑面板（新增）-->
+<div class="search-result-overlay" id="srOverlay" onclick="closeSearch()"></div>
+<div class="search-result-panel" id="srPanel">
+  <div class="srp-header">
+    <div class="srp-title" id="srpTitle">搜索结果</div>
+    <span class="srp-close" onclick="closeSearch()">✕</span>
+  </div>
+  <div class="srp-body" id="srpBody"></div>
+</div>
+
+<!-- 主区域 -->
+<div class="main">
+  <!-- 侧边导航 -->
+  <div class="sidebar">
+    <div class="nav-card">
+      <div class="nav-title">功能模块</div>
+      <div class="nav-item active" onclick="switchSection('overview',this)">
+        <span class="nav-icon">📊</span> 政策总览
+        <span class="nav-badge">16</span>
+      </div>
+      <div class="nav-item" onclick="switchSection('sasac',this)">
+        <span class="nav-icon">🏛️</span> 国资委动态
+        <span class="nav-badge">5</span>
+      </div>
+      <div class="nav-item" onclick="switchSection('ministry',this)">
+        <span class="nav-icon">📋</span> 部委政策
+        <span class="nav-badge">7</span>
+      </div>
+      <div class="nav-item" onclick="switchSection('tax',this)">
+        <span class="nav-icon">🧾</span> 国税总局动态
+        <span class="nav-badge purple">6</span>
+      </div>
+      <div class="nav-item" onclick="switchSection('industry',this)">
+        <span class="nav-icon">🏗️</span> 行业影响分析
+      </div>
+      <div class="nav-item" onclick="switchSection('trend',this)">
+        <span class="nav-icon">📈</span> 发展趋势研判
+      </div>
+      <div class="nav-item" onclick="switchSection('sources',this)">
+        <span class="nav-icon">🔗</span> 信息来源库
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="content">
+
+    <!-- ===== 总览 ===== -->
+    <div class="section active" id="section-overview">
+      <div class="report-header">
+        <div>
+          <div class="report-date" id="reportDateRange">2026年3月24日 — 2026年4月23日</div>
+          <div class="report-title">央企政策动态简报</div>
+          <div class="report-subtitle">建筑行业央企领导干部参阅版 · 国资委 / 部委 / 国税总局 全覆盖</div>
+        </div>
+        <div class="report-stamp"><span class="big">AI</span>智能<br>简报</div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-label">政策文件总数</div><div class="stat-num red">16</div><div class="stat-desc">↑ 较上期 +4</div></div>
+        <div class="stat-card"><div class="stat-label">紧要关注</div><div class="stat-num red">4</div><div class="stat-desc">需重点部署</div></div>
+        <div class="stat-card"><div class="stat-label">重要政策</div><div class="stat-num gold">6</div><div class="stat-desc">需跟踪落实</div></div>
+        <div class="stat-card"><div class="stat-label">税务政策</div><div class="stat-num purple">6</div><div class="stat-desc">建筑业专项</div></div>
+        <div class="stat-card"><div class="stat-label">利好政策</div><div class="stat-num green">4</div><div class="stat-desc">可积极争取</div></div>
+        <div class="stat-card"><div class="stat-label">监控信息源</div><div class="stat-num blue">12</div><div class="stat-desc">权威官方渠道</div></div>
+      </div>
+
+      <!-- 税务紧急提示（新增）-->
+      <div class="tax-alert">
+        <div class="tax-alert-icon">⚠️</div>
+        <div>
+          <div class="tax-alert-title">【重要税务预警】2026年增值税法实施——建筑业8大规则重大变化，需立即排查合同与申报口径</div>
+          <div class="tax-alert-desc">2026年1月1日《中华人民共和国增值税法》正式施行，财政部/国税总局同步发布10号、13号、14号公告。<strong>甲供工程简易计税（3%）全面取消</strong>，新签合同必须按9%一般计税。跨地区预缴规则、纳税时点、申报表格式均重大调整，建议财务部门立即排查。</div>
+          <div class="tax-alert-tags">
+            <span class="tax-alert-tag">财政部2026年第10号公告</span>
+            <span class="tax-alert-tag">财政部2026年第14号公告</span>
+            <span class="tax-alert-tag">国税总局2026年第2号公告</span>
+            <span class="tax-alert-tag">生效：2026-01-01</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="block-title">🔴 紧要关注政策 <span class="tag">需立即研究部署</span></div>
+      <div class="policy-list">
+        <div class="policy-card urgent" data-keywords="增值税法 甲供工程 简易计税 预缴 建筑业 税务 国税" data-source="国家税务总局/财政部" data-date="2026-01-01" data-module="tax">
+          <div class="policy-title">【税务紧急】增值税法施行：甲供工程简易计税取消，新签合同必须按9%一般计税</div>
+          <div class="policy-tags"><span class="ptag ptag-purple">国税总局</span><span class="ptag ptag-red">重大变化</span><span class="ptag ptag-gold">立即执行</span></div>
+          <div class="policy-summary">财政部2026年第10号公告明确：<strong>一般纳税人为甲供工程提供的建筑服务，不再适用简易计税方式（3%征收率），一律按9%税率计算增值税</strong>。影响：原依赖甲供工程3%简易计税降低税负的建筑央企子公司，需重新测算项目税负，重构合同条款，做好进项税额发票的认证抵扣管理。天津、上海地区施工项目均受影响，需与业主重新核对合同计税约定。</div>
+          <div class="policy-meta"><span>🏛️ 财政部 / 国家税务总局</span><span>📅 2026-01-01施行</span><span>📄 财税2026年第10号公告</span><span class="impact-badge impact-high">立即排查</span></div>
+        </div>
+
+        <div class="policy-card urgent" data-keywords="国资委 央企 十五五 重点任务 科技创新 重组" data-source="国务院国资委" data-date="2025-12-23" data-module="sasac">
+          <div class="policy-title">国务院国资委：2026年央企"十五五"开局五大重点任务部署</div>
+          <div class="policy-tags"><span class="ptag ptag-red">国资委</span><span class="ptag ptag-blue">年度部署</span></div>
+          <div class="policy-summary">五大任务：①科技创新与新质生产力；②战略性重组整合（聚焦主责主业）；③市值管理与上市公司质量；④安全稳定发展（防范流动性风险）；⑤深化国企改革（契约化管理）。对中铁上海工程局系统：重点落实主业聚焦和质量效益导向，避免低效扩张。</div>
+          <div class="policy-meta"><span>🏛️ 国务院国资委</span><span>📅 2025-12-23</span><span class="impact-badge impact-high">高度相关</span></div>
+        </div>
+
+        <div class="policy-card urgent" data-keywords="清欠 专项债 拖欠 回款 建筑" data-source="国务院/财政部" data-date="2026-03-05" data-module="ministry">
+          <div class="policy-title">国务院：消化政府拖欠账款纳入4.4万亿专项债重点支持范围</div>
+          <div class="policy-tags"><span class="ptag ptag-red">清欠专项</span><span class="ptag ptag-gold">资金回款</span><span class="ptag ptag-blue">专项债</span></div>
+          <div class="policy-summary">2026年政府工作报告明确将"消化政府拖欠账款"列入4.4万亿专项债支持范围。对建筑央企：应梳理存量清欠台账，按项目所在地对接省市专项债发行节奏；天津、上海项目可分别跟进当地债务化解进度，争取2026-2027年窗口期实现重点项目回款。</div>
+          <div class="policy-meta"><span>🏛️ 国务院 / 财政部</span><span>📅 2026-03-05</span><span>📄 政府工作报告</span><span class="impact-badge impact-high">直接利好</span></div>
+        </div>
+
+        <div class="policy-card important" data-keywords="跨地区 预缴 增值税 建筑服务 预缴管理办法" data-source="财政部/国税总局" data-date="2026-02-02" data-module="tax">
+          <div class="policy-title">【税务重要】增值税预缴税款管理办法：跨地区建筑服务预缴规则系统性重构</div>
+          <div class="policy-tags"><span class="ptag ptag-purple">国税总局</span><span class="ptag ptag-blue">跨地预缴</span><span class="ptag ptag-gold">合规要求</span></div>
+          <div class="policy-summary">财政部2026年第14号公告发布《增值税预缴税款管理办法》，对建筑服务预缴作出系统调整：<strong>跨地级行政区提供建筑服务须向项目所在地预缴增值税；预收款纳税时点提前至收款当期</strong>。中铁上海工程局系统在天津以外省市承接项目时，需在项目地税务局办理登记并按期预缴，避免滞纳金风险。</div>
+          <div class="policy-meta"><span>🏛️ 财政部 / 国家税务总局</span><span>📅 2026-02-02发布</span><span>📄 财政部2026年第14号公告</span><span class="impact-badge impact-tax">必须执行</span></div>
+        </div>
+      </div>
+
+      <div class="block-title">🟡 重要政策动态 <span class="tag">需持续跟踪</span></div>
+      <div class="policy-list">
+        <div class="policy-card important" data-keywords="住建部 城市更新 建筑业 方向" data-source="住建部" data-date="2026-04-08" data-module="ministry">
+          <div class="policy-title">住建部：2026年建筑业四大核心赛道定调（城市更新/智能建造/绿色低碳/新质基建）</div>
+          <div class="policy-tags"><span class="ptag ptag-blue">住建部</span><span class="ptag ptag-green">智能建造</span><span class="ptag ptag-gold">城市更新</span></div>
+          <div class="policy-summary">住建部叠加4.4万亿专项债+8000亿超长期特别国债，明确四大战略赛道。智能建造试点城市由24个扩至50个，央企参与可获专项资金及优先授权。天津属于城市更新重点推进城市，中铁上海工程局天津子公司可积极对接老旧片区改造项目。</div>
+          <div class="policy-meta"><span>🏛️ 住房城乡建设部</span><span>📅 2026-04-08</span><span class="impact-badge impact-high">高度相关</span></div>
+        </div>
+
+        <div class="policy-card important" data-keywords="发改委 投资 重大工程 预算内投资" data-source="国家发展改革委" data-date="2026-03-15" data-module="ministry">
+          <div class="policy-title">发改委：2026年7000亿中央预算内投资计划，铁路/水利/交通为三大主方向</div>
+          <div class="policy-tags"><span class="ptag ptag-blue">发改委</span><span class="ptag ptag-gold">投资计划</span></div>
+          <div class="policy-summary">109项重大工程稳步推进，铁路投资预计超8000亿元。建筑施工类央企需提前布局项目储备，加快前期工作对接，尤其铁路、水利、交通基础设施是中铁系统核心主业。</div>
+          <div class="policy-meta"><span>🏛️ 国家发展改革委</span><span>📅 2026-03-15</span><span class="impact-badge impact-mid">密切关注</span></div>
+        </div>
+      </div>
+    </div><!-- end overview -->
+
+    <!-- ===== 国资委动态 ===== -->
+    <div class="section" id="section-sasac">
+      <div class="block-title">🏛️ 国资委最新动态</div>
+      <div class="policy-list">
+        <div class="policy-card urgent" data-keywords="国资委 央企 十五五 重点任务" data-source="国务院国资委" data-date="2025-12-23" data-module="sasac">
+          <div class="policy-title">2026年央企"十五五"开局五大重点任务全文解读</div>
+          <div class="policy-tags"><span class="ptag ptag-red">年度核心</span><span class="ptag ptag-blue">战略部署</span></div>
+          <div class="policy-summary"><strong>任务一：强化科技创新，培育新质生产力。</strong>加大研发投入，推动AI、大数据在建设领域应用。<br><br><strong>任务二：推进战略性重组整合。</strong>聚焦主责主业，剥离非核心资产。<br><br><strong>任务三：加强市值管理与上市公司质量。</strong>提升ROE，加大分红比例。<br><br><strong>任务四：防范重大风险。</strong>重点防控流动性风险、工程安全风险、海外风险。<br><br><strong>任务五：深化国企改革。</strong>推进经理层任期制和契约化管理，强化绩效与经营质量挂钩。</div>
+          <div class="policy-meta"><span>🏛️ 国务院国资委</span><span>📅 2025-12-23</span><span class="impact-badge impact-high">高度相关</span></div>
+        </div>
+        <div class="policy-card important" data-keywords="国资委 高质量发展 央企 业绩" data-source="国务院国资委" data-date="2026-01-28" data-module="sasac">
+          <div class="policy-title">国资委：2025年国资央企高质量发展情况——建筑央企新能源、城市更新、海外三方向突破</div>
+          <div class="policy-tags"><span class="ptag ptag-blue">发布会</span><span class="ptag ptag-green">业绩总结</span></div>
+          <div class="policy-summary">2025年央企营收利润双超目标。建筑央企三大亮点：①新能源工程EPC承接量大幅增长；②城市更新大片区总包模式成型；③海外新签合同再创新高。2026年要求继续保持质量效益导向，不追求规模扩张。</div>
+          <div class="policy-meta"><span>🏛️ 国务院国资委</span><span>📅 2026-01-28</span><span class="impact-badge impact-mid">关注跟踪</span></div>
+        </div>
+        <div class="policy-card standard" data-keywords="违规 责任追究 央企领导 合规" data-source="国务院国资委" data-date="2025-12-18" data-module="sasac">
+          <div class="policy-title">中央企业违规经营投资责任追究实施办法（最新版）</div>
+          <div class="policy-tags"><span class="ptag ptag-red">合规管理</span><span class="ptag ptag-blue">责任追究</span></div>
+          <div class="policy-summary">新版办法强化领导人员个人问责力度，对重大工程亏损、违规担保、盲目扩张实施经济责任追究，与离任审计挂钩。<strong>建筑央企三级子公司负责人需高度重视项目投资决策合规性</strong>，严格履行内部审批程序，避免项目亏损引发个人问责。</div>
+          <div class="policy-meta"><span>🏛️ 国务院国资委</span><span>📅 2025-12-18</span><span class="impact-badge impact-high">必须掌握</span></div>
+        </div>
+        <div class="policy-card standard" data-keywords="ESG 碳排放 绿色 信息披露 央企" data-source="国务院国资委" data-date="2026-01-20" data-module="sasac">
+          <div class="policy-title">国资委：中央企业ESG信息披露指引（2026版）——建筑央企碳排放强制披露</div>
+          <div class="policy-tags"><span class="ptag ptag-green">ESG</span><span class="ptag ptag-blue">合规管理</span></div>
+          <div class="policy-summary">要求央企2026年起强制披露碳排放、绿色采购等ESG核心指标。建筑央企需建立施工碳排放计量体系，推广绿色建材，年报中单独列示ESG专章。三级子公司需配合集团完成碳核查数据上报。</div>
+          <div class="policy-meta"><span>🏛️ 国务院国资委</span><span>📅 2026-01-20</span><span class="impact-badge impact-mid">合规执行</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 部委政策 ===== -->
+    <div class="section" id="section-ministry">
+      <div class="block-title">📋 中央各部委政策</div>
+      <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="time-btn active" onclick="filterMinistry('all',this)">全部</button>
+        <button class="time-btn" onclick="filterMinistry('mohurd',this)">住建部</button>
+        <button class="time-btn" onclick="filterMinistry('ndrc',this)">发改委</button>
+        <button class="time-btn" onclick="filterMinistry('mof',this)">财政部</button>
+        <button class="time-btn" onclick="filterMinistry('mwr',this)">水利部</button>
+        <button class="time-btn" onclick="filterMinistry('mot',this)">交通部</button>
+      </div>
+      <div class="policy-list" id="ministryList">
+        <div class="policy-card important" data-ministry="mohurd" data-keywords="城市更新 住建部 建筑央企 老旧小区" data-source="住建部" data-date="2026-03-25" data-module="ministry">
+          <div class="policy-title">住建部：关于加快推进城市更新行动的指导意见（2026）</div>
+          <div class="policy-tags"><span class="ptag ptag-blue">住建部</span><span class="ptag ptag-green">城市更新</span></div>
+          <div class="policy-summary">明确城市更新为2026年建筑业核心任务，聚焦老旧小区改造、城市基础设施更新、历史文化街区保护。央企凭借综合能力优势将获"大片区一体化"总包机会。<strong>天津作为重点推进城市，中铁上海工程局天津机构可积极对接当地城市更新项目资源。</strong></div>
+          <div class="policy-meta"><span>🏛️ 住房城乡建设部</span><span>📅 2026-03-25</span><span class="impact-badge impact-high">重点布局</span></div>
+        </div>
+        <div class="policy-card positive" data-ministry="mohurd" data-keywords="智能建造 BIM AI 试点城市 住建部 工信部" data-source="住建部/工信部" data-date="2026-03-20" data-module="ministry">
+          <div class="policy-title">工信部/住建部：智能建造试点城市扩至50个，央企参与可获专项资金</div>
+          <div class="policy-tags"><span class="ptag ptag-green">智能建造</span><span class="ptag ptag-blue">试点政策</span></div>
+          <div class="policy-summary">2026年智能建造试点城市由24个扩展至50个，涵盖AI辅助设计、机器人施工、BIM全程管理。央企参与试点可获资金补贴及税收优惠，同时优先获得地方政府项目授权，有利于提升竞争壁垒。</div>
+          <div class="policy-meta"><span>🏛️ 工信部 + 住建部</span><span>📅 2026-03-20</span><span class="impact-badge impact-low">积极争取</span></div>
+        </div>
+        <div class="policy-card important" data-ministry="ndrc" data-keywords="发改委 预算内投资 重大工程 铁路 水利" data-source="国家发展改革委" data-date="2026-03-10" data-module="ministry">
+          <div class="policy-title">发改委：2026年7000亿中央预算内投资计划安排</div>
+          <div class="policy-tags"><span class="ptag ptag-blue">发改委</span><span class="ptag ptag-gold">投资计划</span></div>
+          <div class="policy-summary">重点布局：交通基础设施（25%）、能源安全（20%）、水利工程（18%）、社会事业（15%）、生态环保（12%）。109项重大工程覆盖铁路、城际轨道、高速公路等，为中铁系统建筑施工企业提供稳定订单基本盘。</div>
+          <div class="policy-meta"><span>🏛️ 国家发展改革委</span><span>📅 2026-03-10</span><span class="impact-badge impact-mid">提前布局</span></div>
+        </div>
+        <div class="policy-card standard" data-ministry="mof" data-keywords="财政部 工程结算 拖欠 进度款 建设单位" data-source="财政部" data-date="2026-02-15" data-module="ministry">
+          <div class="policy-title">财政部：建设工程价款结算暂行办法修订版——不得无故拖欠进度款5%以上</div>
+          <div class="policy-tags"><span class="ptag ptag-gold">财政部</span><span class="ptag ptag-blue">工程结算</span></div>
+          <div class="policy-summary">强制要求地方政府项目按节点拨付工程款，建设单位不得无故拖欠超过进度款的5%。对违规拖欠行为纳入政府信用管理体系。<strong>建筑央企项目部应留存完整进度报告和计量签认记录，作为追款依据。</strong></div>
+          <div class="policy-meta"><span>🏛️ 财政部</span><span>📅 2026-02-15</span><span class="impact-badge impact-low">利好执行</span></div>
+        </div>
+        <div class="policy-card positive" data-ministry="mwr" data-keywords="水利 重大工程 水利部 投资 建设" data-source="水利部" data-date="2026-04-01" data-module="ministry">
+          <div class="policy-title">水利部：2026年新开工水利项目300项以上，投资超5000亿元</div>
+          <div class="policy-tags"><span class="ptag ptag-green">水利部</span><span class="ptag ptag-blue">重大工程</span></div>
+          <div class="policy-summary">水利工程是建筑央企多元化拓展的重要赛道。中铁上海工程局系统具备隧道、地下工程等施工能力，可积极拓展引调水、防洪排涝等水利类项目，弥补铁路市场饱和压力。</div>
+          <div class="policy-meta"><span>🏛️ 水利部</span><span>📅 2026-04-01</span><span class="impact-badge impact-low">积极争取</span></div>
+        </div>
+        <div class="policy-card standard" data-ministry="mot" data-keywords="交通部 公路 铁路 基础设施 投资" data-source="交通运输部" data-date="2026-03-18" data-module="ministry">
+          <div class="policy-title">交通运输部：2026年综合交通基础设施投资维持高位，高铁/城际铁路持续发力</div>
+          <div class="policy-tags"><span class="ptag ptag-blue">交通部</span><span class="ptag ptag-gold">基础设施</span></div>
+          <div class="policy-summary">2026年全国铁路投资预计超8000亿元，城际铁路、市域铁路加速建设，高速公路持续补网。中铁上海工程局系统核心主业市场保持稳定高景气，是最有保障的订单来源。</div>
+          <div class="policy-meta"><span>🏛️ 交通运输部</span><span>📅 2026-03-18</span><span class="impact-badge impact-mid">主业保障</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 国税总局（新增模块）===== -->
+    <div class="section" id="section-tax">
+      <div class="block-title" style="border-left-color:var(--purple)">🧾 国家税务总局政策动态
+        <span class="tag" style="background:var(--purple-light);color:var(--purple)">建筑行业专项</span>
+      </div>
+
+      <div class="tax-alert" style="margin-bottom:20px">
+        <div class="tax-alert-icon">📌</div>
+        <div>
+          <div class="tax-alert-title">本模块关注范围：国家税务总局公告 · 各省市税务局建筑业答疑 · 天津/上海涉税政策</div>
+          <div class="tax-alert-desc">重点追踪：增值税（跨地区预缴/计税方式/申报变化）· 企业所得税（汇算清缴/所得来源地）· 个人所得税（项目人员薪酬合规）· 印花税/城建税等附征税种</div>
+        </div>
+      </div>
+
+      <div class="tax-filter">
+        <button class="time-btn active" onclick="filterTax('all',this)">全部</button>
+        <button class="time-btn" onclick="filterTax('vat',this)">增值税</button>
+        <button class="time-btn" onclick="filterTax('cit',this)">企业所得税</button>
+        <button class="time-btn" onclick="filterTax('iit',this)">个人所得税</button>
+        <button class="time-btn" onclick="filterTax('local',this)">地方税务答疑</button>
+      </div>
+
+      <div class="policy-list" id="taxList">
+        <!-- 增值税 -->
+        <div class="policy-card tax" data-tax="vat" data-keywords="甲供工程 增值税 简易计税 9% 财政部 10号公告" data-source="财政部/国税总局" data-date="2026-01-01" data-module="tax">
+          <div class="policy-title">财政部/国税总局2026年第10号公告：甲供工程不再适用3%简易计税，全面按9%一般计税</div>
+          <div class="policy-tags"><span class="ptag ptag-purple">增值税</span><span class="ptag ptag-red">重大变化</span><span class="ptag ptag-blue">全国适用</span></div>
+          <div class="policy-summary">
+            <strong>【政策核心】</strong>自2026年1月1日起，一般纳税人为甲供工程提供的建筑服务，取消可选择简易计税的优惠，统一适用9%税率一般计税。<br><br>
+            <strong>【对建筑央企的影响】</strong>①已签老合同：继续执行原计税方式至合同期满；②<strong>2026年起新签甲供工程合同：必须按9%一般计税</strong>，不得再约定简易计税；③原采用简易计税的项目，进项税额抵扣管理需重新梳理；④合同报价模型需同步调整，含税报价与不含税报价测算逻辑变化。<br><br>
+            <strong>【操作建议】</strong>梳理在建甲供工程项目清单，分类标注新老合同，逐项核查计税方式约定，修订公司合同标准模板中的税务条款。
+          </div>
+          <div class="policy-meta"><span>🏛️ 财政部 / 国家税务总局</span><span>📅 2026-01-01施行</span><span>📄 财政部2026年第10号公告</span><span class="impact-badge impact-tax">立即排查</span></div>
+        </div>
+
+        <div class="policy-card tax" data-tax="vat" data-keywords="增值税 预缴 跨地区 建筑服务 预缴管理办法 14号" data-source="财政部/国税总局" data-date="2026-02-02" data-module="tax">
+          <div class="policy-title">增值税预缴税款管理办法（财政部2026年第14号）：跨地区建筑服务预缴规则系统性重构</div>
+          <div class="policy-tags"><span class="ptag ptag-purple">增值税</span><span class="ptag ptag-blue">跨地预缴</span><span class="ptag ptag-gold">操作规范</span></div>
+          <div class="policy-summary">
+            <strong>【核心变化】</strong>①跨地级行政区（含直辖市下辖县区）提供建筑服务，须向建筑服务发生地预缴增值税；②预收款取得时即产生纳税义务，须及时预缴；③预缴时须出示建筑合同、分包合同及分包方发票复印件。<br><br>
+            <strong>【适用场景】</strong>中铁上海工程局系统在天津承接项目属于"跨地区提供建筑服务"，需在天津税务局办理临时登记，按规定预缴增值税，机构所在地上海再申报全额。<br><br>
+            <strong>【风险提示】</strong>未按规定预缴将被加收滞纳金，严重者影响企业信用评级，进而影响投标资质。建议各项目部财务人员熟悉项目所在地税务局操作流程。
+          </div>
+          <div class="policy-meta"><span>🏛️ 财政部 / 国家税务总局</span><span>📅 2026-02-02</span><span>📄 财政部2026年第14号公告</span><span class="impact-badge impact-tax">必须执行</span></div>
+        </div>
+
+        <div class="policy-card tax" data-tax="vat" data-keywords="增值税 申报表 新版 劳务 服务 填报 2026" data-source="国家税务总局" data-date="2026-01-15" data-module="tax">
+          <div class="policy-title">国税总局2026年第2号公告：增值税申报表8大填报规则变化——劳务并入服务，主表范围扩大</div>
+          <div class="policy-tags"><span class="ptag ptag-purple">增值税</span><span class="ptag ptag-blue">申报变化</span></div>
+          <div class="policy-summary">
+            增值税法将"加工修理修配劳务"调整并入"服务"范畴，申报表主表填报范围扩大。8大变化要点：①主表第1行口径扩大；②简易计税货物/服务分拆填列；③差额扣除填报逻辑调整；④砂石料/机制砂计税档次重新归类（外购矿石破碎制成机制砂需按13%申报）；⑤预缴税款抵减申报规则细化；⑥甲供工程从附表简易计税栏移出；⑦活动板房、商品混凝土计税规则重新确认；⑧免税项目填报栏位调整。<br><br>
+            <strong>建议财务部门在2026年首个申报期前完成填报逻辑切换，避免申报错误被税务稽查。</strong>
+          </div>
+          <div class="policy-meta"><span>🏛️ 国家税务总局</span><span>📅 2026-01-15</span><span>📄 国税总局2026年第2号公告</span><span class="impact-badge impact-tax">申报合规</span></div>
+        </div>
+
+        <div class="policy-card tax" data-tax="cit" data-keywords="企业所得税 建筑业 所得来源地 跨地区 汇算清缴 项目部" data-source="国家税务总局" data-date="2026-03-01" data-module="tax">
+          <div class="policy-title">国税总局：建筑企业跨地区经营企业所得税征管——项目部收入利润核定口径说明</div>
+          <div class="policy-tags"><span class="ptag ptag-purple">企业所得税</span><span class="ptag ptag-blue">跨地区经营</span><span class="ptag ptag-gold">汇算清缴</span></div>
+          <div class="policy-summary">
+            建筑企业跨地区经营企业所得税实行"总机构与项目部统一核算、就地预缴"模式。要点：①项目部按完工进度确认收入，不得长期挂账"预收款"；②总机构按月（季）向注册地税务局汇总申报，各项目地税务局按比例分享税款；③中铁上海工程局系统各子公司总机构通常在注册地（上海），在天津等地施工项目需按季度向天津税务局预缴所得税。
+          </div>
+          <div class="policy-meta"><span>🏛️ 国家税务总局</span><span>📅 2026-03-01</span><span class="impact-badge impact-mid">关注合规</span></div>
+        </div>
+
+        <div class="policy-card tax" data-tax="iit" data-keywords="个人所得税 薪酬 项目人员 建筑 外派 合规 工资薪金" data-source="国家税务总局" data-date="2026-02-20" data-module="tax">
+          <div class="policy-title">国税总局：建筑施工企业项目外派人员个人所得税扣缴合规要点（2026版）</div>
+          <div class="policy-tags"><span class="ptag ptag-purple">个人所得税</span><span class="ptag ptag-blue">薪酬合规</span></div>
+          <div class="policy-summary">
+            建筑央企三级子公司在多省市设立项目部，外派管理人员的个人所得税需在<strong>实际工作地扣缴</strong>，不得全部归集至注册地申报。要点：①项目经理、专职人员在项目所在地连续工作超过90天，应在当地办理个税扣缴登记；②年度汇算清缴由个人自行在户籍地或主要工作地完成；③<strong>天津项目外派人员需在天津电子税务局办理扣缴登记，确保合规</strong>，避免被地方税务局稽查。对总会计师分管的薪酬板块，需建立外派人员个税合规台账。
+          </div>
+          <div class="policy-meta"><span>🏛️ 国家税务总局</span><span>📅 2026-02-20</span><span class="impact-badge impact-mid">薪酬合规</span></div>
+        </div>
+
+        <div class="policy-card tax" data-tax="local" data-keywords="天津税务 上海税务 地方解答 建筑业 增值税 预缴" data-source="地方税务局" data-date="2026-03-15" data-module="tax">
+          <div class="policy-title">【地方答疑汇编】天津市税务局·上海市税务局建筑业涉税热点问题解答（2026年一季度）</div>
+          <div class="policy-tags"><span class="ptag ptag-purple">地方税务</span><span class="ptag ptag-red">天津</span><span class="ptag ptag-blue">上海</span></div>
+          <div class="policy-summary">
+            <strong>【天津税务局解答要点】</strong><br>
+            ①天津市建筑业跨区（跨区县）项目：按新版《增值税预缴税款管理办法》，跨地级行政区须向项目所在区税务局预缴，<strong>天津市内跨区施工暂按省内简化程序执行</strong>，无需向区级另行预缴（市内统一）；<br>
+            ②天津市对建筑企业预缴增值税建立信息共享平台，发包方有义务核查总包的预缴记录，建议项目部留存预缴凭证备查；<br>
+            ③外地建筑企业在津施工：须在施工前30日向项目所在地税务局报验，取得临时税务登记编号后方可开票。<br><br>
+            <strong>【上海税务局解答要点】</strong><br>
+            ①中铁上海工程局系统总机构注册地在上海的子公司，以上海为汇算清缴地，各项目地预缴税款可在上海申报时抵减；<br>
+            ②上海市对建筑业实行"属地预缴、总部汇算"，对外省市项目预缴凭证实行网上存档管理；<br>
+            ③上海市对总部设在上海、项目在外省市的建筑央企给予<strong>研发费用加计扣除</strong>地方性配套政策支持，总会计师可关注该政策适用条件。
+          </div>
+          <div class="policy-meta"><span>🏛️ 天津市税务局 / 上海市税务局</span><span>📅 2026年一季度</span><span class="impact-badge impact-tax">实操指引</span></div>
+        </div>
+      </div>
+    </div><!-- end tax -->
+
+    <!-- ===== 行业影响分析 ===== -->
+    <div class="section" id="section-industry">
+      <div class="block-title">🏗️ 政策对建筑央企的影响分析</div>
+      <div style="font-size:13px;color:var(--text-light);margin-bottom:16px;padding:8px 12px;background:var(--blue-light);border-radius:6px;color:var(--blue)">
+        📍 分析视角：<strong>中铁上海工程局集团有限公司下属三级子公司</strong>（注册地上海，施工地以天津为主，归属中国中铁工程施工板块）
+      </div>
+
+      <div class="analysis-grid">
+        <div class="analysis-card">
+          <div class="analysis-card-title">✅ 直接利好方向</div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>清欠回款加速</strong>：4.4万亿专项债将"消化拖欠账款"纳入支持范围，建筑央企历史欠款有望在2026年迎来实质性回款窗口。应主动梳理各省市存量清欠台账，对接地方专项债发行节奏。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>城市更新红利</strong>：十万亿级市场规模，央企综合能力优势明显，天津城市更新重点推进，可积极争取大片区总包项目。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>铁路/重大工程保障</strong>：109项重大工程+7000亿预算内投资，铁路施工类央企订单基本盘稳固，中铁系统核心主业高景气延续。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>税务回款保障</strong>：财政部工程结算新规强制按节点拨付进度款，建筑央企维权有了更强政策依据，有助于改善现金流。</div></div>
+        </div>
+        <div class="analysis-card">
+          <div class="analysis-card-title">⚠️ 挑战与风险提示</div>
+          <div class="analysis-item"><div class="analysis-dot dot-purple"></div><div class="analysis-text"><strong>增值税税负上升风险</strong>：甲供工程简易计税取消，若原合同未含税价约定，则税负增量将直接侵蚀利润。<strong>需立即排查在手项目，评估税负影响并与业主协商价格调整。</strong></div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-red"></div><div class="analysis-text"><strong>违规追责趋严</strong>：新版责任追究办法对重大亏损项目领导人员个人问责，项目决策必须严格合规程序。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>跨地区税务合规压力</strong>：跨省施工增值税预缴、企业所得税预缴、个税扣缴三重合规要求，若管理粗放将面临税务稽查风险。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>数字化转型迫切</strong>：智能建造成为门槛要求，缺乏BIM/AI能力在重大项目招投标中将处于结构性劣势。</div></div>
+        </div>
+      </div>
+
+      <div class="block-title">💼 财务与薪酬管理专项关注</div>
+      <div class="analysis-grid">
+        <div class="analysis-card">
+          <div class="analysis-card-title">🧾 税务管理重点（总会计师视角）</div>
+          <div class="analysis-item"><div class="analysis-dot dot-purple"></div><div class="analysis-text"><strong>建立甲供工程合同台账</strong>：按新老合同、计税方式逐一登记，评估2026年起税负变化对在手项目利润的影响。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-purple"></div><div class="analysis-text"><strong>跨地区项目税务合规清单</strong>：天津、上海及其他省市项目分别建立增值税预缴、企业所得税预缴、个税扣缴合规台账。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>薪酬合规优化</strong>：外派项目管理人员个税扣缴义务归属问题需明确，建议与集团税务顾问确认，避免多地重复申报或漏报风险。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>研发加计扣除</strong>：注册在上海的子公司可研究研发费用加计扣除政策，数字化、智能建造相关投入或可纳入加计扣除范围。</div></div>
+        </div>
+        <div class="analysis-card">
+          <div class="analysis-card-title">🚄 业务发展重点方向</div>
+          <div class="analysis-item"><div class="analysis-dot dot-blue"></div><div class="analysis-text"><strong>铁路投资维持高位</strong>：2026年全国铁路投资超8000亿元，城际/市域铁路加速建设，中铁施工系统核心主业保持稳定增长。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-blue"></div><div class="analysis-text"><strong>天津本地市场深耕</strong>：天津城市更新重点推进，地铁、轨道交通、老旧小区改造均为中铁系统可承揽领域，建议强化与天津属地政府的关系维护。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>清欠专项跟进</strong>：对接天津市专项债发行节奏，逐笔梳理存量欠款项目，主动推进清欠方案，2026-2027年为关键窗口期。</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 趋势研判 ===== -->
+    <div class="section" id="section-trend">
+      <div class="block-title">📈 建筑央企发展趋势研判（2026-2030）</div>
+      <div class="trend-grid">
+        <div class="trend-card"><div class="trend-icon">🤖</div><div class="trend-name">智能建造</div><div class="trend-score" style="color:#c0392b">92<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:92%;background:#c0392b"></div></div><div class="trend-desc">AI+BIM已成国家战略，2026年"智能建造元年"，央企技术领先者获显著竞争优势</div></div>
+        <div class="trend-card"><div class="trend-icon">🏙️</div><div class="trend-name">城市更新</div><div class="trend-score" style="color:#c0392b">88<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:88%;background:#c0392b"></div></div><div class="trend-desc">十万亿级存量改造市场，政策持续加码，央企综合能力优势明显，5年持续高景气</div></div>
+        <div class="trend-card"><div class="trend-icon">🧾</div><div class="trend-name">税务合规管理</div><div class="trend-score" style="color:#6c3483">90<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:90%;background:#6c3483"></div></div><div class="trend-desc">增值税法实施后建筑业税务规则系统性重构，合规管理能力成核心竞争力之一</div></div>
+        <div class="trend-card"><div class="trend-icon">⚡</div><div class="trend-name">新能源基础设施</div><div class="trend-score" style="color:#1e8449">85<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:85%;background:#1e8449"></div></div><div class="trend-desc">风电、光伏、储能、算力中心等新质基建高速扩张，建筑央企EPC大有可为</div></div>
+        <div class="trend-card"><div class="trend-icon">🌿</div><div class="trend-name">绿色低碳</div><div class="trend-score" style="color:#d4a017">82<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:82%;background:#d4a017"></div></div><div class="trend-desc">碳排放硬约束趋严，绿色建材低碳施工成刚性要求，同时也是新的价值增长点</div></div>
+        <div class="trend-card"><div class="trend-icon">🚇</div><div class="trend-name">轨道交通</div><div class="trend-score" style="color:#2471a3">75<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:75%;background:#2471a3"></div></div><div class="trend-desc">高铁投资维持高位，城际/市域铁路加速建设，中铁施工系统核心主业稳定增长</div></div>
+      </div>
+      <div class="block-title">🔮 未来三年关键判断</div>
+      <div class="analysis-card" style="margin-bottom:16px">
+        <div class="analysis-item"><div class="analysis-dot dot-red"></div><div class="analysis-text"><strong>【判断①】规模时代终结，质量效益时代开启</strong>——国资委明确"不追求规模扩张"，低效、垫资多、回款难的项目将被主动放弃，财务体系需相应调整考核导向。</div></div>
+        <div class="analysis-item"><div class="analysis-dot dot-red"></div><div class="analysis-text"><strong>【判断②】清欠问题2026-2027年迎来政策窗口期</strong>——专项债支持清欠+财政部结算新规双轮驱动，错失窗口期后回款难度将大幅增大。</div></div>
+        <div class="analysis-item"><div class="analysis-dot dot-purple"></div><div class="analysis-text"><strong>【判断③】税务合规成为建筑央企核心风险管控领域</strong>——增值税法实施、跨地区税务管理趋严，建筑央企三级子公司面临税务稽查概率上升，需建立系统性合规管理机制。</div></div>
+        <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>【判断④】数字化能力成为市场准入门槛</strong>——2028年前不具备BIM/AI能力的建筑企业在重大项目招投标中将处于结构性劣势。</div></div>
+      </div>
+    </div>
+
+    <!-- ===== 信息来源库 ===== -->
+    <div class="section" id="section-sources">
+      <div class="block-title">🔗 权威信息采集来源库</div>
+      <div style="font-size:13px;color:var(--text-light);margin-bottom:16px">共12大官方权威渠道，覆盖国资委、中央各部委、国家税务总局及地方税务局</div>
+
+      <div class="block-title" style="font-size:14px;border-left-color:#c0392b">政策监管核心信息源</div>
+      <div class="source-grid" style="margin-bottom:20px">
+        <div class="source-card"><div class="source-name">🏛️ 国务院国资委</div><a class="source-url" href="http://www.sasac.gov.cn" target="_blank">www.sasac.gov.cn</a><span class="source-type ptag-red ptag" style="background:#fde8e8;color:#c0392b">最高优先级</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">政策法规、央企负责人会议、年度重点工作</div></div>
+        <div class="source-card"><div class="source-name">🏛️ 住房和城乡建设部</div><a class="source-url" href="https://www.mohurd.gov.cn" target="_blank">www.mohurd.gov.cn</a><span class="source-type ptag-blue ptag" style="background:#d6eaf8;color:#1a5276">行业主管</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">建筑业政策、标准规范、智能建造政策</div></div>
+        <div class="source-card"><div class="source-name">🏛️ 国家发展和改革委员会</div><a class="source-url" href="https://www.ndrc.gov.cn" target="_blank">www.ndrc.gov.cn</a><span class="source-type ptag-blue ptag" style="background:#d6eaf8;color:#1a5276">宏观政策</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">投资政策、重大项目、专项债使用方向</div></div>
+        <div class="source-card"><div class="source-name">🏛️ 财政部</div><a class="source-url" href="https://www.mof.gov.cn" target="_blank">www.mof.gov.cn</a><span class="source-type ptag-gold ptag" style="background:#fdf3d0;color:#856a00">财税政策</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">专项债管理、工程结算规定、增值税配套公告</div></div>
+        <div class="source-card"><div class="source-name">🧾 国家税务总局</div><a class="source-url" href="https://www.chinatax.gov.cn" target="_blank">www.chinatax.gov.cn</a><span class="source-type ptag" style="background:var(--purple-light);color:var(--purple)">税务核心</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">增值税/所得税公告、建筑业征管规定、电子税务局</div></div>
+        <div class="source-card"><div class="source-name">🧾 天津市税务局</div><a class="source-url" href="https://tianjin.chinatax.gov.cn" target="_blank">tianjin.chinatax.gov.cn</a><span class="source-type ptag" style="background:var(--purple-light);color:var(--purple)">属地税务</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">天津建筑业预缴管理、地方性税收答疑</div></div>
+        <div class="source-card"><div class="source-name">🧾 上海市税务局</div><a class="source-url" href="https://shanghai.chinatax.gov.cn" target="_blank">shanghai.chinatax.gov.cn</a><span class="source-type ptag" style="background:var(--purple-light);color:var(--purple)">注册地税务</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">总机构汇算清缴、上海研发加计扣除配套政策</div></div>
+        <div class="source-card"><div class="source-name">🏛️ 水利部</div><a class="source-url" href="https://www.mwr.gov.cn" target="_blank">www.mwr.gov.cn</a><span class="source-type ptag-blue ptag" style="background:#d6eaf8;color:#1a5276">专项领域</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">水利工程项目计划、投资安排</div></div>
+        <div class="source-card"><div class="source-name">🏛️ 交通运输部</div><a class="source-url" href="https://www.mot.gov.cn" target="_blank">www.mot.gov.cn</a><span class="source-type ptag-blue ptag" style="background:#d6eaf8;color:#1a5276">专项领域</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">公路、铁路、港口基础设施政策</div></div>
+        <div class="source-card"><div class="source-name">🏛️ 工业和信息化部</div><a class="source-url" href="https://www.miit.gov.cn" target="_blank">www.miit.gov.cn</a><span class="source-type ptag-green ptag" style="background:#d5f5e3;color:#1e8449">技术政策</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">智能建造、数字化转型、新型建材</div></div>
+        <div class="source-card"><div class="source-name">🏛️ 中国政府网</div><a class="source-url" href="https://www.gov.cn" target="_blank">www.gov.cn</a><span class="source-type ptag-red ptag" style="background:#fde8e8;color:#c0392b">权威发布</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">国务院政策、政府工作报告、两会精神</div></div>
+        <div class="source-card"><div class="source-name">📰 国资小新（国资委官方）</div><a class="source-url" href="#" target="_blank">微信公众号</a><span class="source-type ptag-red ptag" style="background:#fde8e8;color:#c0392b">即时动态</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">国资委官方微信，政策解读及时性最强</div></div>
+      </div>
+
+      <div class="block-title" style="font-size:14px;border-left-color:#2471a3">参考信息源</div>
+      <div class="source-grid">
+        <div class="source-card"><div class="source-name">📊 国资报告（期刊）</div><a class="source-url" href="http://www.crhc.cn" target="_blank">crhc.cn</a><span class="source-type ptag-blue ptag" style="background:#d6eaf8;color:#1a5276">深度分析</span></div>
+        <div class="source-card"><div class="source-name">🏗️ 中国建筑业协会</div><a class="source-url" href="https://www.cabc.org.cn" target="_blank">cabc.org.cn</a><span class="source-type ptag-green ptag" style="background:#d5f5e3;color:#1e8449">行业资讯</span></div>
+        <div class="source-card"><div class="source-name">📋 国家铁路局</div><a class="source-url" href="https://www.nra.gov.cn" target="_blank">nra.gov.cn</a><span class="source-type ptag-blue ptag" style="background:#d6eaf8;color:#1a5276">铁路专项</span></div>
+        <div class="source-card"><div class="source-name">🧾 税屋网</div><a class="source-url" href="https://www.shui5.cn" target="_blank">shui5.cn</a><span class="source-type ptag" style="background:var(--purple-light);color:var(--purple)">税务解读</span><div style="font-size:12px;color:var(--text-light);margin-top:4px">建筑业涉税政策专业解析平台</div></div>
+      </div>
+    </div>
+
+  </div><!-- end .content -->
+</div><!-- end .main -->
+
+<!-- ===== 全部政策数据（供搜索用）===== -->
+<script>
+// ============ 政策数据库（搜索引擎数据源）============
+const POLICY_DB = [];
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.policy-card[data-keywords]').forEach(card => {
+    POLICY_DB.push({
+      el: card,
+      title: card.querySelector('.policy-title')?.textContent || '',
+      summary: card.querySelector('.policy-summary')?.textContent || '',
+      keywords: card.dataset.keywords || '',
+      source: card.dataset.source || '',
+      date: card.dataset.date || '',
+      module: card.dataset.module || ''
+    });
+  });
+});
+
+// ============ 搜索功能 ============
+function onSearchInput() {
+  const v = document.getElementById('searchInput').value.trim();
+  const cl = document.getElementById('searchClear');
+  cl.classList.toggle('show', v.length > 0);
+}
+
+function quickSearch(kw) {
+  document.getElementById('searchInput').value = kw;
+  onSearchInput();
+  doSearch();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  onSearchInput();
+  closeSearch();
+}
+
+function doSearch() {
+  const kw = document.getElementById('searchInput').value.trim();
+  if (!kw) return;
+  const terms = kw.split(/\s+/).filter(Boolean);
+  const results = POLICY_DB.filter(p => {
+    const haystack = (p.title + p.summary + p.keywords + p.source).toLowerCase();
+    return terms.every(t => haystack.includes(t.toLowerCase()));
+  });
+  renderSearchResults(kw, results);
+}
+
+function renderSearchResults(kw, results) {
+  const panel = document.getElementById('srPanel');
+  const overlay = document.getElementById('srOverlay');
+  const body = document.getElementById('srpBody');
+  document.getElementById('srpTitle').textContent = `搜索："${kw}"`;
+
+  if (results.length === 0) {
+    body.innerHTML = `<div class="srp-empty"><div class="srp-empty-icon">🔍</div><div style="font-size:15px;color:#555;margin-bottom:8px">未找到相关政策</div><div style="font-size:13px;color:#aaa">尝试更换关键词，如"增值税""清欠""甲供工程"</div></div>`;
+  } else {
+    const moduleNames = {overview:'政策总览',sasac:'国资委动态',ministry:'部委政策',tax:'国税总局',industry:'行业分析',trend:'趋势研判'};
+    body.innerHTML = `<div class="srp-count">找到 <strong>${results.length}</strong> 条相关政策</div>` +
+      results.map((p,i) => {
+        const hl = str => str.replace(new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>');
+        const snippet = p.summary.slice(0, 120) + '…';
+        return `<div class="srp-item" onclick="jumpToPolicy('${p.module}',${i})">
+          <div class="srp-item-title">${hl(p.title)}</div>
+          <div class="srp-item-snippet">${hl(snippet)}</div>
+          <div class="srp-item-meta">
+            <span>🏛️ ${p.source}</span>
+            ${p.date ? `<span>📅 ${p.date}</span>` : ''}
+            <span style="background:#f0f0f0;padding:1px 8px;border-radius:8px">${moduleNames[p.module]||p.module}</span>
+          </div>
+        </div>`;
+      }).join('');
+  }
+  panel.classList.add('show');
+  overlay.classList.add('show');
+}
+
+function jumpToPolicy(moduleId, idx) {
+  closeSearch();
+  const navItems = document.querySelectorAll('.nav-item');
+  const moduleMap = {overview:0,sasac:1,ministry:2,tax:3,industry:4,trend:5,sources:6};
+  const ni = navItems[moduleMap[moduleId]||0];
+  if (ni) switchSection(moduleId, ni);
+  setTimeout(() => {
+    const cards = document.querySelectorAll(`#section-${moduleId} .policy-card[data-keywords]`);
+    if (cards[idx]) { cards[idx].scrollIntoView({behavior:'smooth',block:'center'}); cards[idx].style.outline='3px solid #c0392b'; setTimeout(()=>{cards[idx].style.outline='';},2000); }
+  }, 300);
+}
+
+function closeSearch() {
+  document.getElementById('srPanel').classList.remove('show');
+  document.getElementById('srOverlay').classList.remove('show');
+}
+
+// ============ 实时时钟 ============
+function updateTime() {
+  const now = new Date();
+  document.getElementById('liveTime').textContent =
+    now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+
+    String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+}
+updateTime();
+setInterval(updateTime, 60000);
+
+// ============ 日期初始化 ============
+function initDates() {
+  const now = new Date();
+  const end = now.toISOString().slice(0,10);
+  const start = new Date(now - 30*86400000).toISOString().slice(0,10);
+  document.getElementById('dateStart').value = start;
+  document.getElementById('dateEnd').value = end;
+  updateReportDateRange(start, end);
+}
+initDates();
+
+function updateReportDateRange(s, e) {
+  const fmt = d => { const [y,m,day]=d.split('-'); return y+'年'+parseInt(m)+'月'+parseInt(day)+'日'; };
+  document.getElementById('reportDateRange').textContent = fmt(s)+' — '+fmt(e);
+}
+
+function setRange(days, btn) {
+  document.querySelectorAll('.time-shortcuts .time-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const now = new Date();
+  const end = now.toISOString().slice(0,10);
+  const start = new Date(now - days*86400000).toISOString().slice(0,10);
+  document.getElementById('dateStart').value = start;
+  document.getElementById('dateEnd').value = end;
+  updateReportDateRange(start, end);
+}
+
+// ============ 导航切换 ============
+function switchSection(id, el) {
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('section-'+id).classList.add('active');
+}
+
+// ============ 部委筛选 ============
+function filterMinistry(type, btn) {
+  btn.closest('.section').querySelectorAll('.time-btn,.tax-filter .time-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#ministryList .policy-card').forEach(item => {
+    item.style.display = (type==='all'||item.dataset.ministry===type) ? '' : 'none';
+  });
+}
+
+// ============ 税务筛选 ============
+function filterTax(type, btn) {
+  btn.closest('.tax-filter').querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#taxList .policy-card').forEach(item => {
+    item.style.display = (type==='all'||item.dataset.tax===type) ? '' : 'none';
+  });
+}
+
+// ============ 加载动画 ============
+const loadingSteps = [
+  '正在连接国资委官网…','正在抓取住建部政策…','正在获取发改委文件…',
+  '正在分析财政部动态…','正在采集国税总局公告…','正在获取天津/上海税务答疑…',
+  '正在进行行业影响分析…','正在生成智能研判报告…','数据处理完成，准备展示…'
+];
+
+function runQuery() {
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.classList.add('show');
+  let step = 0;
+  const stepEl = document.getElementById('loadingStep');
+  const timer = setInterval(() => {
+    if (step < loadingSteps.length) { stepEl.textContent = loadingSteps[step++]; }
+    else {
+      clearInterval(timer);
+      overlay.classList.remove('show');
+      const ni = document.querySelector('.nav-item');
+      switchSection('overview', ni);
+      const s = document.getElementById('dateStart').value;
+      const e = document.getElementById('dateEnd').value;
+      updateReportDateRange(s, e);
+    }
+  }, 600);
+}
+function refreshData() { runQuery(); }
+
+// ============ 趋势条动画 ============
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.querySelectorAll('.trend-bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0';
+      requestAnimationFrame(() => { setTimeout(() => { bar.style.width = w; }, 100); });
+    });
+  }, 300);
+});
+</script>
+</body>
+</html>
