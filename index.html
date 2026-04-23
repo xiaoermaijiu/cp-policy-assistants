@@ -105,6 +105,38 @@
   .stat-num.purple { color:var(--purple); }
   .stat-desc { font-size:12px; color:var(--text-light); }
 
+  /* ===== 化债进度表格 ===== */
+  .debt-table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:16px; }
+  .debt-table th { background:var(--blue); color:#fff; padding:10px 12px; text-align:left; font-weight:600; white-space:nowrap; }
+  .debt-table td { padding:10px 12px; border-bottom:1px solid var(--gray-border); vertical-align:top; }
+  .debt-table tr:hover td { background:var(--blue-light); }
+  .debt-table .tag-hot { background:#fde8e8; color:#c0392b; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+  .debt-table .tag-mid { background:#fef9e7; color:#9a7d0a; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+  .debt-table .tag-done { background:#d5f5e3; color:#1e8449; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+
+  /* ===== 融资成本卡片 ===== */
+  .rate-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 20px; margin-bottom:12px; border-left:5px solid var(--blue-mid); }
+  .rate-card.loan { border-left-color:var(--green); }
+  .rate-card.factor { border-left-color:var(--purple); }
+  .rate-card.lease { border-left-color:var(--gold); }
+  .rate-card.warn { border-left-color:var(--red); }
+  .rate-title { font-size:15px; font-weight:600; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .rate-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:10px; }
+  .rate-item { background:var(--gray-bg); border-radius:8px; padding:12px; text-align:center; }
+  .rate-label { font-size:11px; color:var(--text-light); margin-bottom:4px; }
+  .rate-value { font-size:22px; font-weight:700; }
+  .rate-value.up { color:var(--red); }
+  .rate-value.down { color:var(--green); }
+  .rate-value.flat { color:var(--blue-mid); }
+  .rate-change { font-size:11px; color:var(--text-light); }
+  .rate-note { font-size:12px; color:var(--text-sub); line-height:1.7; padding:8px 12px; background:var(--gray-bg); border-radius:6px; }
+
+  @media (max-width:900px) {
+    .rate-grid { grid-template-columns:1fr; }
+    .debt-table { font-size:12px; }
+    .debt-table th, .debt-table td { padding:8px 6px; }
+  }
+
   /* ===== 通用块标题 ===== */
   .block-title { font-size:16px; font-weight:700; color:var(--text-main); border-left:4px solid var(--red); padding-left:12px; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
   .block-title .tag { font-size:11px; background:var(--red-light); color:var(--red); padding:2px 8px; border-radius:4px; font-weight:500; }
@@ -235,7 +267,7 @@
     <div class="header-logo">🏛️</div>
     <div>
       <div class="header-title">央企政策智能助手</div>
-      <div class="header-sub">建筑行业专版 · 中铁上海工程局系统 · 领导干部专用</div>
+      <div class="header-sub">建筑行业专版 · 建筑央企系统 · 领导干部专用</div>
     </div>
   </div>
   <div class="header-right">
@@ -260,6 +292,8 @@
     <span class="stag" onclick="quickSearch('智能建造')">智能建造</span>
     <span class="stag" onclick="quickSearch('专项债')">专项债</span>
     <span class="stag" onclick="quickSearch('城市更新')">城市更新</span>
+    <span class="stag" onclick="quickSearch('化债')">化债</span>
+    <span class="stag" onclick="quickSearch('保理')">保理</span>
   </div>
 </div>
 
@@ -320,6 +354,13 @@
       <div class="nav-item" onclick="switchSection('industry',this)">
         <span class="nav-icon">🏗️</span> 行业影响分析
       </div>
+      <div class="nav-item" onclick="switchSection('debt',this)">
+        <span class="nav-icon">💰</span> 政府化债追踪
+        <span class="nav-badge">热门</span>
+      </div>
+      <div class="nav-item" onclick="switchSection('finance',this)">
+        <span class="nav-icon">💳</span> 融资成本监测
+      </div>
       <div class="nav-item" onclick="switchSection('trend',this)">
         <span class="nav-icon">📈</span> 发展趋势研判
       </div>
@@ -372,28 +413,28 @@
         <div class="policy-card urgent" data-keywords="增值税法 甲供工程 简易计税 预缴 建筑业 税务 国税" data-source="国家税务总局/财政部" data-date="2026-01-01" data-module="tax">
           <div class="policy-title">【税务紧急】增值税法施行：甲供工程简易计税取消，新签合同必须按9%一般计税</div>
           <div class="policy-tags"><span class="ptag ptag-purple">国税总局</span><span class="ptag ptag-red">重大变化</span><span class="ptag ptag-gold">立即执行</span></div>
-          <div class="policy-summary">财政部2026年第10号公告明确：<strong>一般纳税人为甲供工程提供的建筑服务，不再适用简易计税方式（3%征收率），一律按9%税率计算增值税</strong>。影响：原依赖甲供工程3%简易计税降低税负的建筑央企子公司，需重新测算项目税负，重构合同条款，做好进项税额发票的认证抵扣管理。天津、上海地区施工项目均受影响，需与业主重新核对合同计税约定。</div>
+          <div class="policy-summary">财政部2026年第10号公告明确：<strong>一般纳税人为甲供工程提供的建筑服务，不再适用简易计税方式（3%征收率），一律按9%税率计算增值税</strong>。影响：原依赖甲供工程3%简易计税降低税负的建筑央企子公司，需重新测算项目税负，重构合同条款，做好进项税额发票的认证抵扣管理。跨地区施工项目均受影响，需与业主重新核对合同计税约定。</div>
           <div class="policy-meta"><span>🏛️ 财政部 / 国家税务总局</span><span>📅 2026-01-01施行</span><span>📄 财税2026年第10号公告</span><a class="policy-link purple" href="https://www.mof.gov.cn/jrttts/202602/t20260203_3983175.htm" target="_blank">🔗 查看原文</a><span class="impact-badge impact-high">立即排查</span></div>
         </div>
 
         <div class="policy-card urgent" data-keywords="国资委 央企 十五五 重点任务 科技创新 重组" data-source="国务院国资委" data-date="2025-12-23" data-module="sasac">
           <div class="policy-title">国务院国资委：2026年央企"十五五"开局五大重点任务部署</div>
           <div class="policy-tags"><span class="ptag ptag-red">国资委</span><span class="ptag ptag-blue">年度部署</span></div>
-          <div class="policy-summary">五大任务：①科技创新与新质生产力；②战略性重组整合（聚焦主责主业）；③市值管理与上市公司质量；④安全稳定发展（防范流动性风险）；⑤深化国企改革（契约化管理）。对中铁上海工程局系统：重点落实主业聚焦和质量效益导向，避免低效扩张。</div>
+          <div class="policy-summary">五大任务：①科技创新与新质生产力；②战略性重组整合（聚焦主责主业）；③市值管理与上市公司质量；④安全稳定发展（防范流动性风险）；⑤深化国企改革（契约化管理）。对建筑央企系统：重点落实主业聚焦和质量效益导向，避免低效扩张。</div>
           <div class="policy-meta"><span>🏛️ 国务院国资委</span><span>📅 2025-12-23</span><a class="policy-link red" href="https://wap.sasac.gov.cn/n2588020/n2588057/n26823304/n26823341/c32429552/content.html" target="_blank">🔗 查看原文</a><span class="impact-badge impact-high">高度相关</span></div>
         </div>
 
         <div class="policy-card urgent" data-keywords="清欠 专项债 拖欠 回款 建筑" data-source="国务院/财政部" data-date="2026-03-05" data-module="ministry">
           <div class="policy-title">国务院：消化政府拖欠账款纳入4.4万亿专项债重点支持范围</div>
           <div class="policy-tags"><span class="ptag ptag-red">清欠专项</span><span class="ptag ptag-gold">资金回款</span><span class="ptag ptag-blue">专项债</span></div>
-          <div class="policy-summary">2026年政府工作报告明确将"消化政府拖欠账款"列入4.4万亿专项债支持范围。对建筑央企：应梳理存量清欠台账，按项目所在地对接省市专项债发行节奏；天津、上海项目可分别跟进当地债务化解进度，争取2026-2027年窗口期实现重点项目回款。</div>
+          <div class="policy-summary">2026年政府工作报告明确将"消化政府拖欠账款"列入4.4万亿专项债支持范围。对建筑央企：应梳理存量清欠台账，按项目所在地对接省市专项债发行节奏，争取2026-2027年窗口期实现重点项目回款。</div>
           <div class="policy-meta"><span>🏛️ 国务院 / 财政部</span><span>📅 2026-03-05</span><span>📄 政府工作报告</span><a class="policy-link red" href="https://www.gov.cn/gongbao/2026/issue_8432/202603/content_7012345.htm" target="_blank">🔗 查看原文</a><span class="impact-badge impact-high">直接利好</span></div>
         </div>
 
         <div class="policy-card important" data-keywords="跨地区 预缴 增值税 建筑服务 预缴管理办法" data-source="财政部/国税总局" data-date="2026-02-02" data-module="tax">
           <div class="policy-title">【税务重要】增值税预缴税款管理办法：跨地区建筑服务预缴规则系统性重构</div>
           <div class="policy-tags"><span class="ptag ptag-purple">国税总局</span><span class="ptag ptag-blue">跨地预缴</span><span class="ptag ptag-gold">合规要求</span></div>
-          <div class="policy-summary">财政部2026年第14号公告发布《增值税预缴税款管理办法》，对建筑服务预缴作出系统调整：<strong>跨地级行政区提供建筑服务须向项目所在地预缴增值税；预收款纳税时点提前至收款当期</strong>。中铁上海工程局系统在天津以外省市承接项目时，需在项目地税务局办理登记并按期预缴，避免滞纳金风险。</div>
+          <div class="policy-summary">财政部2026年第14号公告发布《增值税预缴税款管理办法》，对建筑服务预缴作出系统调整：<strong>跨地级行政区提供建筑服务须向项目所在地预缴增值税；预收款纳税时点提前至收款当期</strong>。建筑央企系统在天津以外省市承接项目时，需在项目地税务局办理登记并按期预缴，避免滞纳金风险。</div>
           <div class="policy-meta"><span>🏛️ 财政部 / 国家税务总局</span><span>📅 2026-02-02发布</span><span>📄 财政部2026年第14号公告</span><a class="policy-link purple" href="https://fgk.chinatax.gov.cn/zcfgk/c102416/c5247497/content.html" target="_blank">🔗 查看原文</a><span class="impact-badge impact-tax">必须执行</span></div>
         </div>
       </div>
@@ -403,14 +444,14 @@
         <div class="policy-card important" data-keywords="住建部 城市更新 建筑业 方向" data-source="住建部" data-date="2026-04-08" data-module="ministry">
           <div class="policy-title">住建部：2026年建筑业四大核心赛道定调（城市更新/智能建造/绿色低碳/新质基建）</div>
           <div class="policy-tags"><span class="ptag ptag-blue">住建部</span><span class="ptag ptag-green">智能建造</span><span class="ptag ptag-gold">城市更新</span></div>
-          <div class="policy-summary">住建部叠加4.4万亿专项债+8000亿超长期特别国债，明确四大战略赛道。智能建造试点城市由24个扩至50个，央企参与可获专项资金及优先授权。天津属于城市更新重点推进城市，中铁上海工程局天津子公司可积极对接老旧片区改造项目。</div>
+          <div class="policy-summary">住建部叠加4.4万亿专项债+8000亿超长期特别国债，明确四大战略赛道。智能建造试点城市由24个扩至50个，央企参与可获专项资金及优先授权。城市更新重点推进城市的子公司可积极对接老旧片区改造项目。</div>
           <div class="policy-meta"><span>🏛️ 住房城乡建设部</span><span>📅 2026-04-08</span><a class="policy-link" href="https://www.gov.cn/zhengce/zhengceku/202604/content_7066082.htm" target="_blank">🔗 查看原文</a><span class="impact-badge impact-high">高度相关</span></div>
         </div>
 
         <div class="policy-card important" data-keywords="发改委 投资 重大工程 预算内投资" data-source="国家发展改革委" data-date="2026-03-15" data-module="ministry">
           <div class="policy-title">发改委：2026年7000亿中央预算内投资计划，铁路/水利/交通为三大主方向</div>
           <div class="policy-tags"><span class="ptag ptag-blue">发改委</span><span class="ptag ptag-gold">投资计划</span></div>
-          <div class="policy-summary">109项重大工程稳步推进，铁路投资预计超8000亿元。建筑施工类央企需提前布局项目储备，加快前期工作对接，尤其铁路、水利、交通基础设施是中铁系统核心主业。</div>
+          <div class="policy-summary">109项重大工程稳步推进，铁路投资预计超8000亿元。建筑施工类央企需提前布局项目储备，加快前期工作对接，铁路、水利、交通基础设施是核心主业。</div>
           <div class="policy-meta"><span>🏛️ 国家发展改革委</span><span>📅 2026-03-15</span><a class="policy-link" href="https://www.ndrc.gov.cn/xxgk/zcfb/tz/202603/" target="_blank">🔗 查看原文</a><span class="impact-badge impact-mid">密切关注</span></div>
         </div>
       </div>
@@ -462,7 +503,7 @@
         <div class="policy-card important" data-ministry="mohurd" data-keywords="城市更新 住建部 建筑央企 老旧小区" data-source="住建部" data-date="2026-03-25" data-module="ministry">
           <div class="policy-title">住建部：关于加快推进城市更新行动的指导意见（2026）</div>
           <div class="policy-tags"><span class="ptag ptag-blue">住建部</span><span class="ptag ptag-green">城市更新</span></div>
-          <div class="policy-summary">明确城市更新为2026年建筑业核心任务，聚焦老旧小区改造、城市基础设施更新、历史文化街区保护。央企凭借综合能力优势将获"大片区一体化"总包机会。<strong>天津作为重点推进城市，中铁上海工程局天津机构可积极对接当地城市更新项目资源。</strong></div>
+          <div class="policy-summary">明确城市更新为2026年建筑业核心任务，聚焦老旧小区改造、城市基础设施更新、历史文化街区保护。央企凭借综合能力优势将获"大片区一体化"总包机会。<strong>城市更新重点推进城市的子公司可积极对接当地城市更新项目资源。</strong></div>
           <div class="policy-meta"><span>🏛️ 住房城乡建设部</span><span>📅 2026-03-25</span><a class="policy-link" href="https://www.gov.cn/zhengce/zhengceku/202604/content_7066082.htm" target="_blank">🔗 查看原文</a><span class="impact-badge impact-high">重点布局</span></div>
         </div>
         <div class="policy-card positive" data-ministry="mohurd" data-keywords="智能建造 BIM AI 试点城市 住建部 工信部" data-source="住建部/工信部" data-date="2026-03-20" data-module="ministry">
@@ -474,7 +515,7 @@
         <div class="policy-card important" data-ministry="ndrc" data-keywords="发改委 预算内投资 重大工程 铁路 水利" data-source="国家发展改革委" data-date="2026-03-10" data-module="ministry">
           <div class="policy-title">发改委：2026年7000亿中央预算内投资计划安排</div>
           <div class="policy-tags"><span class="ptag ptag-blue">发改委</span><span class="ptag ptag-gold">投资计划</span></div>
-          <div class="policy-summary">重点布局：交通基础设施（25%）、能源安全（20%）、水利工程（18%）、社会事业（15%）、生态环保（12%）。109项重大工程覆盖铁路、城际轨道、高速公路等，为中铁系统建筑施工企业提供稳定订单基本盘。</div>
+          <div class="policy-summary">重点布局：交通基础设施（25%）、能源安全（20%）、水利工程（18%）、社会事业（15%）、生态环保（12%）。109项重大工程覆盖铁路、城际轨道、高速公路等，为施工央企提供稳定订单基本盘。</div>
           <div class="policy-meta"><span>🏛️ 国家发展改革委</span><span>📅 2026-03-10</span><a class="policy-link" href="https://www.ndrc.gov.cn" target="_blank">🔗 查看原文</a><span class="impact-badge impact-mid">提前布局</span></div>
         </div>
         <div class="policy-card standard" data-ministry="mof" data-keywords="财政部 工程结算 拖欠 进度款 建设单位" data-source="财政部" data-date="2026-02-15" data-module="ministry">
@@ -486,13 +527,13 @@
         <div class="policy-card positive" data-ministry="mwr" data-keywords="水利 重大工程 水利部 投资 建设" data-source="水利部" data-date="2026-04-01" data-module="ministry">
           <div class="policy-title">水利部：2026年新开工水利项目300项以上，投资超5000亿元</div>
           <div class="policy-tags"><span class="ptag ptag-green">水利部</span><span class="ptag ptag-blue">重大工程</span></div>
-          <div class="policy-summary">水利工程是建筑央企多元化拓展的重要赛道。中铁上海工程局系统具备隧道、地下工程等施工能力，可积极拓展引调水、防洪排涝等水利类项目，弥补铁路市场饱和压力。</div>
+          <div class="policy-summary">水利工程是建筑央企多元化拓展的重要赛道。建筑央企系统具备隧道、地下工程等施工能力，可积极拓展引调水、防洪排涝等水利类项目，弥补铁路市场饱和压力。</div>
           <div class="policy-meta"><span>🏛️ 水利部</span><span>📅 2026-04-01</span><a class="policy-link" href="https://www.mwr.gov.cn" target="_blank">🔗 查看原文</a><span class="impact-badge impact-low">积极争取</span></div>
         </div>
         <div class="policy-card standard" data-ministry="mot" data-keywords="交通部 公路 铁路 基础设施 投资" data-source="交通运输部" data-date="2026-03-18" data-module="ministry">
           <div class="policy-title">交通运输部：2026年综合交通基础设施投资维持高位，高铁/城际铁路持续发力</div>
           <div class="policy-tags"><span class="ptag ptag-blue">交通部</span><span class="ptag ptag-gold">基础设施</span></div>
-          <div class="policy-summary">2026年全国铁路投资预计超8000亿元，城际铁路、市域铁路加速建设，高速公路持续补网。中铁上海工程局系统核心主业市场保持稳定高景气，是最有保障的订单来源。</div>
+          <div class="policy-summary">2026年全国铁路投资预计超8000亿元，城际铁路、市域铁路加速建设，高速公路持续补网。建筑央企系统核心主业市场保持稳定高景气，是最有保障的订单来源。</div>
           <div class="policy-meta"><span>🏛️ 交通运输部</span><span>📅 2026-03-18</span><a class="policy-link" href="https://www.mot.gov.cn" target="_blank">🔗 查看原文</a><span class="impact-badge impact-mid">主业保障</span></div>
         </div>
       </div>
@@ -538,7 +579,7 @@
           <div class="policy-tags"><span class="ptag ptag-purple">增值税</span><span class="ptag ptag-blue">跨地预缴</span><span class="ptag ptag-gold">操作规范</span></div>
           <div class="policy-summary">
             <strong>【核心变化】</strong>①跨地级行政区（含直辖市下辖县区）提供建筑服务，须向建筑服务发生地预缴增值税；②预收款取得时即产生纳税义务，须及时预缴；③预缴时须出示建筑合同、分包合同及分包方发票复印件。<br><br>
-            <strong>【适用场景】</strong>中铁上海工程局系统在天津承接项目属于"跨地区提供建筑服务"，需在天津税务局办理临时登记，按规定预缴增值税，机构所在地上海再申报全额。<br><br>
+            <strong>【适用场景】</strong>建筑央企系统跨地区承接项目属于"跨地区提供建筑服务"，需在项目所在地税务局办理临时登记，按规定预缴增值税，机构所在地再申报全额。<br><br>
             <strong>【风险提示】</strong>未按规定预缴将被加收滞纳金，严重者影响企业信用评级，进而影响投标资质。建议各项目部财务人员熟悉项目所在地税务局操作流程。
           </div>
           <div class="policy-meta"><span>🏛️ 财政部 / 国家税务总局</span><span>📅 2026-02-02</span><span>📄 财政部2026年第14号公告</span><a class="policy-link purple" href="https://fgk.chinatax.gov.cn/zcfgk/c102416/c5247497/content.html" target="_blank">🔗 查看原文</a><span class="impact-badge impact-tax">必须执行</span></div>
@@ -558,7 +599,7 @@
           <div class="policy-title">国税总局：建筑企业跨地区经营企业所得税征管——项目部收入利润核定口径说明</div>
           <div class="policy-tags"><span class="ptag ptag-purple">企业所得税</span><span class="ptag ptag-blue">跨地区经营</span><span class="ptag ptag-gold">汇算清缴</span></div>
           <div class="policy-summary">
-            建筑企业跨地区经营企业所得税实行"总机构与项目部统一核算、就地预缴"模式。要点：①项目部按完工进度确认收入，不得长期挂账"预收款"；②总机构按月（季）向注册地税务局汇总申报，各项目地税务局按比例分享税款；③中铁上海工程局系统各子公司总机构通常在注册地（上海），在天津等地施工项目需按季度向天津税务局预缴所得税。
+            建筑企业跨地区经营企业所得税实行"总机构与项目部统一核算、就地预缴"模式。要点：①项目部按完工进度确认收入，不得长期挂账"预收款"；②总机构按月（季）向注册地税务局汇总申报，各项目地税务局按比例分享税款；③建筑央企系统各子公司总机构通常在注册地，跨省市施工项目需按季度向项目所在地税务局预缴所得税。
           </div>
           <div class="policy-meta"><span>🏛️ 国家税务总局</span><span>📅 2026-03-01</span><a class="policy-link purple" href="https://www.chinatax.gov.cn" target="_blank">🔗 查看原文</a><span class="impact-badge impact-mid">关注合规</span></div>
         </div>
@@ -567,7 +608,7 @@
           <div class="policy-title">国税总局：建筑施工企业项目外派人员个人所得税扣缴合规要点（2026版）</div>
           <div class="policy-tags"><span class="ptag ptag-purple">个人所得税</span><span class="ptag ptag-blue">薪酬合规</span></div>
           <div class="policy-summary">
-            建筑央企三级子公司在多省市设立项目部，外派管理人员的个人所得税需在<strong>实际工作地扣缴</strong>，不得全部归集至注册地申报。要点：①项目经理、专职人员在项目所在地连续工作超过90天，应在当地办理个税扣缴登记；②年度汇算清缴由个人自行在户籍地或主要工作地完成；③<strong>天津项目外派人员需在天津电子税务局办理扣缴登记，确保合规</strong>，避免被地方税务局稽查。对总会计师分管的薪酬板块，需建立外派人员个税合规台账。
+            建筑央企三级子公司在多省市设立项目部，外派管理人员的个人所得税需在<strong>实际工作地扣缴</strong>，不得全部归集至注册地申报。要点：①项目经理、专职人员在项目所在地连续工作超过90天，应在当地办理个税扣缴登记；②年度汇算清缴由个人自行在户籍地或主要工作地完成；③<strong>各项目外派人员需在项目所在地电子税务局办理扣缴登记，确保合规</strong>，避免被地方税务局稽查。对总会计师分管的薪酬板块，需建立外派人员个税合规台账。
           </div>
           <div class="policy-meta"><span>🏛️ 国家税务总局</span><span>📅 2026-02-20</span><a class="policy-link purple" href="https://www.chinatax.gov.cn" target="_blank">🔗 查看原文</a><span class="impact-badge impact-mid">薪酬合规</span></div>
         </div>
@@ -581,9 +622,9 @@
             ②天津市对建筑企业预缴增值税建立信息共享平台，发包方有义务核查总包的预缴记录，建议项目部留存预缴凭证备查；<br>
             ③外地建筑企业在津施工：须在施工前30日向项目所在地税务局报验，取得临时税务登记编号后方可开票。<br><br>
             <strong>【上海税务局解答要点】</strong><br>
-            ①中铁上海工程局系统总机构注册地在上海的子公司，以上海为汇算清缴地，各项目地预缴税款可在上海申报时抵减；<br>
-            ②上海市对建筑业实行"属地预缴、总部汇算"，对外省市项目预缴凭证实行网上存档管理；<br>
-            ③上海市对总部设在上海、项目在外省市的建筑央企给予<strong>研发费用加计扣除</strong>地方性配套政策支持，总会计师可关注该政策适用条件。
+            ①建筑央企系统总机构以注册地为汇算清缴地，各项目地预缴税款可在注册地申报时抵减；<br>
+            ②注册地所在省市对建筑业实行"属地预缴、总部汇算"，对外省市项目预缴凭证实行网上存档管理；<br>
+            ③注册地所在省市对建筑央企总部可给予<strong>研发费用加计扣除</strong>地方性配套政策支持，总会计师可关注该政策适用条件。
           </div>
           <div class="policy-meta"><span>🏛️ 天津市税务局 / 上海市税务局</span><span>📅 2026年一季度</span><a class="policy-link purple" href="https://tianjin.chinatax.gov.cn" target="_blank">🔗 天津税务局</a><a class="policy-link purple" href="https://shanghai.chinatax.gov.cn" target="_blank">🔗 上海税务局</a><span class="impact-badge impact-tax">实操指引</span></div>
         </div>
@@ -594,15 +635,15 @@
     <div class="section" id="section-industry">
       <div class="block-title">🏗️ 政策对建筑央企的影响分析</div>
       <div style="font-size:13px;color:var(--text-light);margin-bottom:16px;padding:8px 12px;background:var(--blue-light);border-radius:6px;color:var(--blue)">
-        📍 分析视角：<strong>中铁上海工程局集团有限公司下属三级子公司</strong>（注册地上海，施工地以天津为主，归属中国中铁工程施工板块）
+        📍 分析视角：<strong>建筑央企下属三级施工子公司</strong>（工程施工板块，跨区域经营，主业聚焦铁路/公路/市政等基础设施建设）
       </div>
 
       <div class="analysis-grid">
         <div class="analysis-card">
           <div class="analysis-card-title">✅ 直接利好方向</div>
           <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>清欠回款加速</strong>：4.4万亿专项债将"消化拖欠账款"纳入支持范围，建筑央企历史欠款有望在2026年迎来实质性回款窗口。应主动梳理各省市存量清欠台账，对接地方专项债发行节奏。</div></div>
-          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>城市更新红利</strong>：十万亿级市场规模，央企综合能力优势明显，天津城市更新重点推进，可积极争取大片区总包项目。</div></div>
-          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>铁路/重大工程保障</strong>：109项重大工程+7000亿预算内投资，铁路施工类央企订单基本盘稳固，中铁系统核心主业高景气延续。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>城市更新红利</strong>：十万亿级市场规模，央企综合能力优势明显，重点推进城市可积极争取大片区总包项目。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>铁路/重大工程保障</strong>：109项重大工程+7000亿预算内投资，铁路施工类央企订单基本盘稳固，核心主业高景气延续。</div></div>
           <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>税务回款保障</strong>：财政部工程结算新规强制按节点拨付进度款，建筑央企维权有了更强政策依据，有助于改善现金流。</div></div>
         </div>
         <div class="analysis-card">
@@ -619,20 +660,250 @@
         <div class="analysis-card">
           <div class="analysis-card-title">🧾 税务管理重点（总会计师视角）</div>
           <div class="analysis-item"><div class="analysis-dot dot-purple"></div><div class="analysis-text"><strong>建立甲供工程合同台账</strong>：按新老合同、计税方式逐一登记，评估2026年起税负变化对在手项目利润的影响。</div></div>
-          <div class="analysis-item"><div class="analysis-dot dot-purple"></div><div class="analysis-text"><strong>跨地区项目税务合规清单</strong>：天津、上海及其他省市项目分别建立增值税预缴、企业所得税预缴、个税扣缴合规台账。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-purple"></div><div class="analysis-text"><strong>跨地区项目税务合规清单</strong>：各省市项目分别建立增值税预缴、企业所得税预缴、个税扣缴合规台账。</div></div>
           <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>薪酬合规优化</strong>：外派项目管理人员个税扣缴义务归属问题需明确，建议与集团税务顾问确认，避免多地重复申报或漏报风险。</div></div>
-          <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>研发加计扣除</strong>：注册在上海的子公司可研究研发费用加计扣除政策，数字化、智能建造相关投入或可纳入加计扣除范围。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>研发加计扣除</strong>：关注注册地所在省市的研发费用加计扣除政策，数字化、智能建造相关投入或可纳入加计扣除范围。</div></div>
         </div>
         <div class="analysis-card">
           <div class="analysis-card-title">🚄 业务发展重点方向</div>
-          <div class="analysis-item"><div class="analysis-dot dot-blue"></div><div class="analysis-text"><strong>铁路投资维持高位</strong>：2026年全国铁路投资超8000亿元，城际/市域铁路加速建设，中铁施工系统核心主业保持稳定增长。</div></div>
-          <div class="analysis-item"><div class="analysis-dot dot-blue"></div><div class="analysis-text"><strong>天津本地市场深耕</strong>：天津城市更新重点推进，地铁、轨道交通、老旧小区改造均为中铁系统可承揽领域，建议强化与天津属地政府的关系维护。</div></div>
-          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>清欠专项跟进</strong>：对接天津市专项债发行节奏，逐笔梳理存量欠款项目，主动推进清欠方案，2026-2027年为关键窗口期。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-blue"></div><div class="analysis-text"><strong>铁路投资维持高位</strong>：2026年全国铁路投资超8000亿元，城际/市域铁路加速建设，施工央企核心主业保持稳定增长。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-blue"></div><div class="analysis-text"><strong>属地市场深耕</strong>：城市更新重点推进城市、地铁、轨道交通、老旧小区改造均为可承揽领域，建议强化与属地政府的关系维护。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>清欠专项跟进</strong>：对接各省市专项债发行节奏，逐笔梳理存量欠款项目，主动推进清欠方案，2026-2027年为关键窗口期。</div></div>
         </div>
       </div>
     </div>
 
-    <!-- ===== 趋势研判 ===== -->
+    <!-- ===== 政府化债追踪（新增模块）===== -->
+    <div class="section" id="section-debt">
+      <div class="block-title" style="border-left-color:var(--green)">💰 政府化债与清欠追踪
+        <span class="tag" style="background:#d5f5e3;color:#1e8449">催收决策参考</span>
+      </div>
+
+      <div class="tax-alert" style="background:linear-gradient(135deg,#1e8449,#27ae60);margin-bottom:20px">
+        <div class="tax-alert-icon">🎯</div>
+        <div>
+          <div class="tax-alert-title">本模块核心目标：精准掌握各地化债进展，为清欠催收提供决策依据</div>
+          <div class="tax-alert-desc">追踪各省市专项债发行节奏 → 识别化债资金到位时点 → 派人前往当地政府跟进欠款催收 → 加速历史应收账款回收</div>
+          <div class="tax-alert-tags">
+            <span class="tax-alert-tag">4.4万亿专项债</span>
+            <span class="tax-alert-tag">2万亿置换隐债</span>
+            <span class="tax-alert-tag">消化拖欠账款</span>
+            <span class="tax-alert-tag">清零目标</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 化债宏观概览 -->
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-label">2026年专项债总额度</div><div class="stat-num green">4.4万亿</div><div class="stat-desc">较2025年+4000亿</div></div>
+        <div class="stat-card"><div class="stat-label">Q1地方债发行</div><div class="stat-num blue">3.1万亿</div><div class="stat-desc">同比+9%，创历史新高</div></div>
+        <div class="stat-card"><div class="stat-label">Q1新增专项债</div><div class="stat-num gold">1.19万亿</div><div class="stat-desc">同比+20.8%，进度27%</div></div>
+        <div class="stat-card"><div class="stat-label">Q1置换隐债再融资</div><div class="stat-num red">9600亿</div><div class="stat-desc">已完成全年额度近半</div></div>
+      </div>
+
+      <!-- 重点政策文件 -->
+      <div class="block-title" style="font-size:14px">📑 化债与清欠核心政策</div>
+      <div class="policy-list" style="margin-bottom:20px">
+        <div class="policy-card positive" data-keywords="专项债 清欠 拖欠账款 4.4万亿 消化政府欠款" data-source="国务院/财政部" data-date="2026-03-05" data-module="debt">
+          <div class="policy-title">国务院：消化政府拖欠账款纳入4.4万亿专项债重点支持范围</div>
+          <div class="policy-tags"><span class="ptag ptag-green">清欠核心</span><span class="ptag ptag-gold">直接利好</span></div>
+          <div class="policy-summary">2026年政府工作报告明确将"消化政府拖欠账款"列入专项债支持范围，中央多次强调"理旧账也是政绩"，督促地方"下更大力气"解决拖欠企业账款问题。建筑央企应梳理存量清欠台账，按项目所在地对接省市专项债发行节奏，2026-2027年为关键窗口期。</div>
+          <div class="policy-meta"><span>🏛️ 国务院 / 财政部</span><span>📅 2026-03-05</span><a class="policy-link" href="https://www.gov.cn/gongbao/2026/issue_8432/202603/content_7012345.htm" target="_blank">🔗 查看原文</a><span class="impact-badge impact-low">直接利好</span></div>
+        </div>
+        <div class="policy-card important" data-keywords="置换隐债 再融资债 化债 地方政府 债务化解" data-source="财政部" data-date="2026-01-28" data-module="debt">
+          <div class="policy-title">财政部：2026年置换存量隐性债务再融资专项债额度2万亿元，Q1已发行9600亿元</div>
+          <div class="policy-tags"><span class="ptag ptag-gold">化债资金</span><span class="ptag ptag-blue">落地进度</span></div>
+          <div class="policy-summary">2026年安排2万亿元置换存量隐性债务再融资专项债，1-2月已披露发行超3000亿元，Q1累计发行约9600亿元，完成全年额度近半。江苏、浙江、湖南发行规模领先。化债资金到位后，地方政府偿债能力改善，拖欠企业账款有望优先清偿。</div>
+          <div class="policy-meta"><span>🏛️ 财政部</span><span>📅 2026-Q1</span><a class="policy-link" href="https://www.mof.gov.cn" target="_blank">🔗 查看原文</a><span class="impact-badge impact-mid">密切关注</span></div>
+        </div>
+        <div class="policy-card standard" data-keywords="工程结算 拖欠 进度款 建设单位 5%" data-source="财政部" data-date="2026-02-15" data-module="debt">
+          <div class="policy-title">财政部：建设工程价款结算办法修订——不得无故拖欠进度款5%以上</div>
+          <div class="policy-tags"><span class="ptag ptag-gold">财政部</span><span class="ptag ptag-blue">工程结算</span></div>
+          <div class="policy-summary">强制要求地方政府项目按节点拨付工程款，建设单位不得无故拖欠超过进度款的5%。违规拖欠行为纳入政府信用管理体系。建筑央企项目部应留存完整进度报告和计量签认记录，作为追款依据。</div>
+          <div class="policy-meta"><span>🏛️ 财政部</span><span>📅 2026-02-15</span><a class="policy-link" href="https://www.mof.gov.cn" target="_blank">🔗 查看原文</a><span class="impact-badge impact-low">利好执行</span></div>
+        </div>
+      </div>
+
+      <!-- 各省化债进度 -->
+      <div class="block-title" style="font-size:14px">🗺️ 各省市化债与专项债发行进度（2026年一季度）</div>
+      <div style="font-size:12px;color:var(--text-light);margin-bottom:10px">💡 进度越快的地区，清欠催收窗口越早，建议优先派人跟进</div>
+      <div style="overflow-x:auto;margin-bottom:20px">
+        <table class="debt-table">
+          <thead>
+            <tr><th>省市</th><th>Q1专项债发行</th><th>置换隐债发行</th><th>化债进度</th><th>清欠窗口</th><th>催收建议</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>江苏</strong></td><td>超1200亿</td><td>800亿（1-2月）</td><td><span class="tag-hot">进度领先</span></td><td>2026年中</td><td>🔥 立即派人对接，Q2为最佳窗口</td></tr>
+            <tr><td><strong>浙江</strong></td><td>超900亿</td><td>564亿（1-2月）</td><td><span class="tag-hot">进度领先</span></td><td>2026年中</td><td>🔥 立即派人对接，资金到位快</td></tr>
+            <tr><td><strong>湖南</strong></td><td>超600亿</td><td>516亿（1-2月）</td><td><span class="tag-hot">进度领先</span></td><td>2026年中</td><td>🔥 化债力度大，优先催收</td></tr>
+            <tr><td><strong>山东</strong></td><td>率先启动发行</td><td>超400亿</td><td><span class="tag-mid">稳步推进</span></td><td>2026年Q3</td><td>⚡ 提前梳理欠款清单，待资金到位即对接</td></tr>
+            <tr><td><strong>四川</strong></td><td>超500亿</td><td>超300亿</td><td><span class="tag-mid">稳步推进</span></td><td>2026年Q3</td><td>⚡ 关注水利/交通项目专项债安排</td></tr>
+            <tr><td><strong>广东</strong></td><td>超800亿</td><td>超350亿</td><td><span class="tag-mid">稳步推进</span></td><td>2026年Q3</td><td>⚡ 经济大省财力强，催收阻力较小</td></tr>
+            <tr><td><strong>河北</strong></td><td>超400亿</td><td>280亿（已提前下达）</td><td><span class="tag-mid">稳步推进</span></td><td>2026年Q3</td><td>⚡ 已提前下达2026年额度，优先关注</td></tr>
+            <tr><td><strong>甘肃</strong></td><td>超200亿</td><td>待发行</td><td><span class="tag-done">加速中</span></td><td>2026年底</td><td>📌 喊出隐债"清零"目标，政策意愿强</td></tr>
+            <tr><td><strong>陕西</strong></td><td>超350亿</td><td>待发行</td><td><span class="tag-done">加速中</span></td><td>2026年底</td><td>📌 西安/延安力争"双清零"，关注</td></tr>
+            <tr><td><strong>吉林</strong></td><td>超200亿</td><td>待发行</td><td><span class="tag-done">加速中</span></td><td>2026年底</td><td>📌 长春推动"双清零"，可提前布局</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 隐债清零目标 -->
+      <div class="block-title" style="font-size:14px">🏁 已提出隐债"清零"目标的地区</div>
+      <div class="analysis-grid" style="margin-bottom:20px">
+        <div class="analysis-card">
+          <div class="analysis-card-title">⚡ 省级"清零"目标</div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>甘肃省</strong>：用足用好化债政策，推动有条件的市县提前实现隐性债务清零。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>西藏自治区</strong>：推进全域隐性债务清零。</div></div>
+        </div>
+        <div class="analysis-card">
+          <div class="analysis-card-title">🏙️ 重点城市"清零"目标</div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>陕西西安市/延安市</strong>：力争实现隐性债务和融资平台"双清零"。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>吉林长春市</strong>：加快全市隐性债务和融资平台"双清零"步伐。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>广西来宾市</strong>：确保如期实现存量到期债务"清零"目标。</div></div>
+        </div>
+      </div>
+
+      <!-- 催收策略 -->
+      <div class="block-title" style="font-size:14px">🎯 清欠催收行动建议</div>
+      <div class="analysis-card" style="margin-bottom:16px">
+        <div class="analysis-item"><div class="analysis-dot dot-red"></div><div class="analysis-text"><strong>【第一步】建立专项债-清欠联动台账</strong>：按项目所在省市逐一登记欠款金额、欠款政府主体、对应专项债发行进度。化债资金到位后1-3个月为催收黄金期。</div></div>
+        <div class="analysis-item"><div class="analysis-dot dot-red"></div><div class="analysis-text"><strong>【第二步】分级催收策略</strong>：江苏/浙江/湖南等进度领先地区立即派人驻点对接；山东/四川/广东等稳步推进地区提前梳理清单，待资金到位即对接；甘肃/陕西等清零目标地区提前布局，政策意愿强。</div></div>
+        <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>【第三步】凭证留存与法律保障</strong>：所有催收沟通留痕，进度报告/计量签认完整归档。遇政府方推诿，可引用财政部工程结算新规（不得拖欠5%以上）施压。</div></div>
+        <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>【第四步】借助专项债信息平台</strong>：关注中国地方政府债券信息公开平台（celma.org.cn），实时追踪各省市专项债发行与资金拨付公告。</div></div>
+      </div>
+
+      <div style="font-size:12px;color:var(--text-light);padding:10px 12px;background:#fff3cd;border-radius:6px">
+        ⚠️ <strong>风险提示</strong>：化债资金优先用于偿还到期债务本息，拖欠企业账款清偿需地方政府主动安排。建议通过属地政府关系、人大代表提案等多渠道推动清欠议题纳入地方化债方案。
+      </div>
+    </div><!-- end debt -->
+
+    <!-- ===== 融资成本监测（新增模块）===== -->
+    <div class="section" id="section-finance">
+      <div class="block-title" style="border-left-color:var(--purple)">💳 融资成本与债权变现监测
+        <span class="tag" style="background:var(--purple-light);color:var(--purple)">保理决策参考</span>
+      </div>
+
+      <div class="tax-alert" style="background:linear-gradient(135deg,#6c3483,#8e44ad);margin-bottom:20px">
+        <div class="tax-alert-icon">💡</div>
+        <div>
+          <div class="tax-alert-title">核心目标：监测融资成本变化，优化应收债权变现决策</div>
+          <div class="tax-alert-desc">关注LPR走势 → 对比保理/租赁成本 → 判断变现时机 → 加速应收账款回收，改善现金流</div>
+          <div class="tax-alert-tags">
+            <span class="tax-alert-tag">LPR利率</span>
+            <span class="tax-alert-tag">应收账款保理</span>
+            <span class="tax-alert-tag">融资租赁</span>
+            <span class="tax-alert-tag">债权变现</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- LPR利率 -->
+      <div class="rate-card">
+        <div class="rate-title">📊 贷款市场报价利率（LPR）——2026年4月</div>
+        <div class="rate-grid">
+          <div class="rate-item"><div class="rate-label">1年期LPR</div><div class="rate-value flat">3.0%</div><div class="rate-change">连续8个月持平</div></div>
+          <div class="rate-item"><div class="rate-label">5年期以上LPR</div><div class="rate-value flat">3.5%</div><div class="rate-change">连续8个月持平</div></div>
+          <div class="rate-item"><div class="rate-label">2026年展望</div><div class="rate-value down">稳中有降</div><div class="rate-change">央行仍有降息空间</div></div>
+        </div>
+        <div class="rate-note">
+          <strong>【解读】</strong>2026年1-4月LPR保持不变，1年期3.0%、5年期3.5%。东方金诚分析认为，2026年LPR有望稳中有降。对建筑央企影响：①存量浮动利率贷款成本将随LPR下调而降低；②新项目融资成本处于历史低位窗口；③若LPR继续下行，可暂缓大额长期固定利率融资，优先选择浮动利率。
+        </div>
+      </div>
+
+      <!-- 小微企业优惠贷款 -->
+      <div class="rate-card loan">
+        <div class="rate-title">🏦 央行/银保监：小微企业及建筑业优惠贷款政策</div>
+        <div class="rate-grid">
+          <div class="rate-item"><div class="rate-label">普惠小微贷款利率</div><div class="rate-value down">3.5%-4.5%</div><div class="rate-change">较2025年-30BP</div></div>
+          <div class="rate-item"><div class="rate-label">建筑央企供应链融资</div><div class="rate-value flat">3.8%-4.8%</div><div class="rate-change">核心企业增信后</div></div>
+          <div class="rate-item"><div class="rate-label">绿色建筑项目贷款</div><div class="rate-value down">3.2%-4.0%</div><div class="rate-change">享受绿色金融优惠</div></div>
+        </div>
+        <div class="rate-note">
+          <strong>【适用场景】</strong>①三级子公司若符合小型微利企业标准，可申请普惠小微贷款享受优惠利率；②依托集团核心企业信用的供应链融资，利率可低至3.8%-4.8%；③城市更新/绿色建筑项目可申请绿色贷款，利率进一步下浮。建议财务部门主动对接银行，争取优惠利率。
+        </div>
+      </div>
+
+      <!-- 应收账款保理 -->
+      <div class="rate-card factor">
+        <div class="rate-title">📋 应收账款保理成本与策略</div>
+        <div class="rate-grid">
+          <div class="rate-item"><div class="rate-label">银行保理（有追索权）</div><div class="rate-value flat">3.5%-5.0%</div><div class="rate-change">政府项目应收款</div></div>
+          <div class="rate-item"><div class="rate-label">银行保理（无追索权）</div><div class="rate-value up">5.0%-7.0%</div><div class="rate-change">风险转移成本较高</div></div>
+          <div class="rate-item"><div class="rate-label">商业保理</div><div class="rate-value up">6.0%-10.0%</div><div class="rate-change">成本较高，需谨慎</div></div>
+        </div>
+        <div class="rate-note">
+          <strong>【保理决策分析】</strong><br>
+          ①<strong>有追索权银行保理（推荐）</strong>：成本3.5%-5.0%，适合政府/央企等高信用主体的应收款，保理后若债务人违约需回购，但利率较低；<br>
+          ②<strong>无追索权保理</strong>：成本5%-7%，风险完全转移给保理商，适合信用风险较高的应收款，但成本侵蚀利润较多；<br>
+          ③<strong>商业保理</strong>：成本6%-10%，审批快但利率高，仅在紧急现金流需求时使用；<br>
+          ④<strong>保理 vs 等待催收对比</strong>：若政府欠款1亿元，银行保理成本约350-500万/年，若催收预计6-12个月回款，则保理净损失可控；若催收遥遥无期（2年以上），保理变现可立即改善现金流，应果断决策。
+        </div>
+      </div>
+
+      <!-- 融资租赁 -->
+      <div class="rate-card lease">
+        <div class="rate-title">🏗️ 融资租赁成本（施工设备/工程机械）</div>
+        <div class="rate-grid">
+          <div class="rate-item"><div class="rate-label">直租（新设备）</div><div class="rate-value flat">4.5%-6.0%</div><div class="rate-change">IRR，含税</div></div>
+          <div class="rate-item"><div class="rate-label">回租（存量设备）</div><div class="rate-value up">5.5%-8.0%</div><div class="rate-change">融资属性更强</div></div>
+          <div class="rate-item"><div class="rate-label">厂商租赁</div><div class="rate-value down">3.5%-5.0%</div><div class="rate-change">设备商贴息优惠</div></div>
+        </div>
+        <div class="rate-note">
+          <strong>【策略建议】</strong>①新增施工设备优先选择<strong>厂商租赁</strong>（设备商贴息后IRR仅3.5%-5.0%），成本最低；②回租模式用于短期融资周转，成本偏高但可盘活存量设备资产；③关注融资租赁与银行贷款的税盾差异——租赁费可全额税前抵扣，而贷款利息+折旧的税盾效果需逐期计算。
+        </div>
+      </div>
+
+      <!-- 债权变现策略 -->
+      <div class="rate-card warn">
+        <div class="rate-title">⚡ 应收债权变现策略与时机判断</div>
+        <div class="rate-grid" style="grid-template-columns:1fr 1fr">
+          <div class="rate-item" style="background:#d5f5e3">
+            <div class="rate-label">✅ 建议保理变现</div>
+            <div style="font-size:13px;text-align:left;line-height:1.8;padding:8px">
+              · 政府欠款，催收1年以上无进展<br>
+              · 债务方信用恶化，回款概率下降<br>
+              · 集团考核压力，需改善现金流指标<br>
+              · 银行保理成本<等待机会成本<br>
+              · 化债资金到位前的过渡期
+            </div>
+          </div>
+          <div class="rate-item" style="background:#fde8e8">
+            <div class="rate-label">⚠️ 建议继续催收</div>
+            <div style="font-size:13px;text-align:left;line-height:1.8;padding:8px">
+              · 化债资金即将到位，1-3个月内可回收<br>
+              · 业主信用良好，只是流程性延迟<br>
+              · 商业保理成本过高（>8%），侵蚀利润<br>
+              · 欠款金额较小，催收成本低于保理成本<br>
+              · 正在诉讼/仲裁中，胜诉概率高
+            </div>
+          </div>
+        </div>
+        <div class="rate-note" style="background:#fff3cd">
+          <strong>【总会计师决策框架】</strong><br>
+          1️⃣ <strong>先分类</strong>：将应收账款按"政府欠款/央企欠款/民企欠款"分类，政府欠款重点关注化债窗口；<br>
+          2️⃣ <strong>再看成本</strong>：计算保理净成本 vs 催收等待成本，净成本更低者优先保理；<br>
+          3️⃣ <strong>把握时点</strong>：化债资金到位后1-3个月为催收黄金期，之前可先保理过渡；<br>
+          4️⃣ <strong>组合策略</strong>：大额欠款催收+小额欠款保理，兼顾现金流与成本控制。
+        </div>
+      </div>
+
+      <!-- 行业融资环境 -->
+      <div class="block-title" style="font-size:14px">📊 建筑行业融资环境分析</div>
+      <div class="analysis-grid" style="margin-bottom:16px">
+        <div class="analysis-card">
+          <div class="analysis-card-title">✅ 有利因素</div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>LPR处于历史低位</strong>：1年期3.0%，5年期3.5%，新项目融资成本大幅降低。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>央行持续宽松</strong>：2026年仍有降息降准预期，流动性充裕有利于建筑央企融资。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-green"></div><div class="analysis-text"><strong>绿色金融支持</strong>：绿色建筑/城市更新项目可获低息贷款支持，利率可下浮30-50BP。</div></div>
+        </div>
+        <div class="analysis-card">
+          <div class="analysis-card-title">⚠️ 风险因素</div>
+          <div class="analysis-item"><div class="analysis-dot dot-red"></div><div class="analysis-text"><strong>商业保理成本偏高</strong>：部分商业保理公司综合成本达8%-10%，远高于银行保理，需严格比价。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>融资租赁陷阱</strong>：回租模式综合成本IRR可达8%，表面利率低于实际成本，需用IRR口径核算。</div></div>
+          <div class="analysis-item"><div class="analysis-dot dot-gold"></div><div class="analysis-text"><strong>保理合规要求</strong>：应收账款确权、基础合同真实性审查趋严，需提前准备完整凭证链。</div></div>
+        </div>
+      </div>
+    </div><!-- end finance -->
     <div class="section" id="section-trend">
       <div class="block-title">📈 建筑央企发展趋势研判（2026-2030）</div>
       <div class="trend-grid">
@@ -641,7 +912,7 @@
         <div class="trend-card"><div class="trend-icon">🧾</div><div class="trend-name">税务合规管理</div><div class="trend-score" style="color:#6c3483">90<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:90%;background:#6c3483"></div></div><div class="trend-desc">增值税法实施后建筑业税务规则系统性重构，合规管理能力成核心竞争力之一</div></div>
         <div class="trend-card"><div class="trend-icon">⚡</div><div class="trend-name">新能源基础设施</div><div class="trend-score" style="color:#1e8449">85<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:85%;background:#1e8449"></div></div><div class="trend-desc">风电、光伏、储能、算力中心等新质基建高速扩张，建筑央企EPC大有可为</div></div>
         <div class="trend-card"><div class="trend-icon">🌿</div><div class="trend-name">绿色低碳</div><div class="trend-score" style="color:#d4a017">82<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:82%;background:#d4a017"></div></div><div class="trend-desc">碳排放硬约束趋严，绿色建材低碳施工成刚性要求，同时也是新的价值增长点</div></div>
-        <div class="trend-card"><div class="trend-icon">🚇</div><div class="trend-name">轨道交通</div><div class="trend-score" style="color:#2471a3">75<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:75%;background:#2471a3"></div></div><div class="trend-desc">高铁投资维持高位，城际/市域铁路加速建设，中铁施工系统核心主业稳定增长</div></div>
+        <div class="trend-card"><div class="trend-icon">🚇</div><div class="trend-name">轨道交通</div><div class="trend-score" style="color:#2471a3">75<span style="font-size:14px;color:#aaa">/100</span></div><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:75%;background:#2471a3"></div></div><div class="trend-desc">高铁投资维持高位，城际/市域铁路加速建设，施工央企核心主业稳定增长</div></div>
       </div>
       <div class="block-title">🔮 未来三年关键判断</div>
       <div class="analysis-card" style="margin-bottom:16px">
@@ -742,7 +1013,7 @@ function renderSearchResults(kw, results) {
   if (results.length === 0) {
     body.innerHTML = `<div class="srp-empty"><div class="srp-empty-icon">🔍</div><div style="font-size:15px;color:#555;margin-bottom:8px">未找到相关政策</div><div style="font-size:13px;color:#aaa">尝试更换关键词，如"增值税""清欠""甲供工程"</div></div>`;
   } else {
-    const moduleNames = {overview:'政策总览',sasac:'国资委动态',ministry:'部委政策',tax:'国税总局',industry:'行业分析',trend:'趋势研判'};
+    const moduleNames = {overview:'政策总览',sasac:'国资委动态',ministry:'部委政策',tax:'国税总局',industry:'行业分析',debt:'化债追踪',finance:'融资成本',trend:'趋势研判'};
     body.innerHTML = `<div class="srp-count">找到 <strong>${results.length}</strong> 条相关政策</div>` +
       results.map((p,i) => {
         const hl = str => str.replace(new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>');
@@ -765,7 +1036,7 @@ function renderSearchResults(kw, results) {
 function jumpToPolicy(moduleId, idx) {
   closeSearch();
   const navItems = document.querySelectorAll('.nav-item');
-  const moduleMap = {overview:0,sasac:1,ministry:2,tax:3,industry:4,trend:5,sources:6};
+const moduleMap = {overview:0,sasac:1,ministry:2,tax:3,industry:4,debt:5,finance:6,trend:7,sources:8};
   const ni = navItems[moduleMap[moduleId]||0];
   if (ni) switchSection(moduleId, ni);
   setTimeout(() => {
@@ -845,7 +1116,8 @@ function filterTax(type, btn) {
 // ============ 加载动画 ============
 const loadingSteps = [
   '正在连接国资委官网…','正在抓取住建部政策…','正在获取发改委文件…',
-  '正在分析财政部动态…','正在采集国税总局公告…','正在获取天津/上海税务答疑…',
+  '正在分析财政部动态…','正在采集国税总局公告…','正在获取属地税务答疑…',
+  '正在追踪各省化债进度…','正在监测融资成本变化…',
   '正在进行行业影响分析…','正在生成智能研判报告…','数据处理完成，准备展示…'
 ];
 
