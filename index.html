@@ -212,9 +212,9 @@
   .platform-countdown .cd-block:last-child { border-right:none; }
   /* 监控台账表格 */
   .monitor-table-wrap { border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; margin-bottom:16px; }
-  .monitor-table { width:100%; border-collapse:collapse; font-size:13px; }
-  .monitor-table th { background:#922b21; color:#fff; padding:11px 12px; text-align:left; font-weight:600; white-space:nowrap; }
-  .monitor-table td { padding:10px 12px; border-bottom:1px solid var(--gray-border); vertical-align:middle; background:#fff; }
+  .monitor-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .monitor-table th { background:#922b21; color:#fff; padding:6px 8px; text-align:left; font-weight:600; white-space:nowrap; font-size:12px; }
+  .monitor-table td { padding:5px 8px; border-bottom:1px solid var(--gray-border); vertical-align:middle; background:#fff; line-height:1.45; }
   .monitor-table tr:hover td { background:#fef9f9; }
   .monitor-table tr.risk-high td { background:#fff0f0; }
   .monitor-table tr.risk-mid td { background:#fffbf0; }
@@ -231,6 +231,12 @@
   .btn-add-row:hover { background:var(--red-dark); }
   .btn-del-row { background:none; border:1px solid #ddd; border-radius:4px; padding:3px 8px; font-size:11px; color:#999; cursor:pointer; }
   .btn-del-row:hover { background:#fde8e8; color:#c0392b; border-color:#e8b3ae; }
+  /* 动态搜索按钮和单元格 */
+  .dyn-cell { position:relative; min-width:140px; }
+  .dyn-cell .dyn-info { font-size:12px; line-height:1.5; margin-bottom:2px; }
+  .dyn-search-btn { background:none; border:1px solid rgba(52,152,219,0.3); border-radius:4px; padding:2px 6px; font-size:11px; cursor:pointer; color:#2980b9; transition:all .2s; }
+  .dyn-search-btn:hover { background:rgba(52,152,219,0.1); border-color:#2980b9; }
+  .dyn-loading { color:#999; font-size:12px; }
   /* 风险信号卡片 */
   .signal-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px; }
   .signal-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 18px; }
@@ -869,7 +875,7 @@
         <span style="font-size:11px;color:var(--text-light);font-weight:normal;margin-left:8px">（可在下方添加/编辑您关注的单位）</span>
       </div>
       <div style="font-size:12px;color:var(--text-light);margin-bottom:10px;padding:8px 12px;background:#fde8e8;border-radius:6px;border-left:3px solid #c0392b">
-        ⚡ <strong>操作指引</strong>：在台账中登记欠款甲方单位及其母公司/关联公司，设定风险等级，定期核查退出动态。<strong>风险等级"高"</strong> = 已发布退出公告或有退出迹象，须立即行动。
+        ⚡ <strong>操作指引</strong>：台账已预置22家融资平台公司。点击每行「🔍」按钮可<strong>联网搜索</strong>该平台的最新化债/退出/股权动态，发现重要信息后录入摘要；点击表头「🔄 刷新全部」可<strong>批量打开搜索窗口</strong>。<strong>风险等级"高"</strong> = 已发布退出公告或有退出迹象，须立即行动。
       </div>
       <div class="monitor-table-wrap">
         <table class="monitor-table" id="monitorTable">
@@ -883,8 +889,10 @@
               <th style="min-width:80px">欠款类型</th>
               <th style="min-width:90px">是否在平台名单</th>
               <th style="min-width:80px">退出动态</th>
+              <th style="min-width:160px">📰 最新动态 <button onclick="refreshAllDynamics()" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid rgba(52,152,219,0.4);background:rgba(52,152,219,0.1);color:#2980b9;cursor:pointer" title="联网查询所有平台公司的最新化债/退出/股权动态">🔄 刷新全部</button></th>
               <th style="min-width:70px">风险等级</th>
               <th style="min-width:120px">下一步行动</th>
+              <th style="min-width:110px">💡 下一步建议</th>
               <th style="width:50px">操作</th>
             </tr>
           </thead>
@@ -899,8 +907,10 @@
               <td>工程进度款</td>
               <td>是（在名单）</td>
               <td>已发布退出公告（2025年11月）</td>
+              <td class="dyn-cell" data-company="XX城市建设投资有限公司"><span class="dyn-loading">—</span></td>
               <td><span class="risk-badge r-high">🔴 高风险</span></td>
               <td>立即发函要求书面确认债务，启动诉前保全</td>
+              <td style="font-size:11px;color:#2471a3;background:rgba(36,113,163,0.04)">🔴已发退出公告，须立即申报债权+诉前保全</td>
               <td><button class="btn-del-row" onclick="delMonitorRow(this)">删除</button></td>
             </tr>
             <tr class="risk-mid" data-risk="mid">
@@ -912,8 +922,10 @@
               <td>工程结算款</td>
               <td>是（在名单）</td>
               <td>母公司有重组传闻，暂无公告</td>
+              <td class="dyn-cell" data-company="XX交通建设集团有限公司"><span class="dyn-loading">—</span></td>
               <td><span class="risk-badge r-mid">🟡 中风险</span></td>
               <td>每月核查工商变更，推进结算确认函签署</td>
+              <td style="font-size:11px;color:#2471a3;background:rgba(36,113,163,0.04)">关注母公司重组动态，推进结算确认</td>
               <td><button class="btn-del-row" onclick="delMonitorRow(this)">删除</button></td>
             </tr>
             <tr class="risk-low" data-risk="low">
@@ -925,8 +937,10 @@
               <td>工程质保金</td>
               <td>是（在名单）</td>
               <td>暂无退出动态</td>
+              <td class="dyn-cell" data-company="XX水务投资有限公司"><span class="dyn-loading">—</span></td>
               <td><span class="risk-badge r-low">🟢 低风险</span></td>
               <td>季度跟进，关注150号文到期前动向</td>
+              <td style="font-size:11px;color:#2471a3;background:rgba(36,113,163,0.04)">🟢低风险，正常催收，关注150号文到期节点</td>
               <td><button class="btn-del-row" onclick="delMonitorRow(this)">删除</button></td>
             </tr>
           </tbody>
@@ -946,6 +960,7 @@
                 </select>
               </td>
               <td><input class="monitor-input" id="inp-status" placeholder="如：无动态" /></td>
+              <td><input class="monitor-input" id="inp-dynamic" placeholder="最新动态（自动/手动）" /></td>
               <td>
                 <select class="monitor-input" id="inp-risk" style="padding:5px 6px">
                   <option value="high">🔴 高风险</option>
@@ -955,6 +970,7 @@
                 </select>
               </td>
               <td><input class="monitor-input" id="inp-action" placeholder="下一步行动" /></td>
+              <td><input class="monitor-input" id="inp-suggestion" placeholder="策略建议" /></td>
               <td><button class="btn-add-row" onclick="addMonitorRow()">＋ 添加</button></td>
             </tr>
           </tfoot>
@@ -1433,6 +1449,8 @@ updatePlatformCountdown();
 
 // ============ 监控台账 ============
 const STORAGE_KEY = 'platform_monitor_rows';
+const STORAGE_VER_KEY = 'platform_monitor_ver';
+const CURRENT_VER = 'v6.0-20260424'; // 更新预置数据时修改此版本号，页面会自动重载
 const RISK_LABELS = {
   high: '<span class="risk-badge r-high">🔴 高风险</span>',
   mid:  '<span class="risk-badge r-mid">🟡 中风险</span>',
@@ -1446,17 +1464,25 @@ function buildMonitorRow(data, idx) {
   const riskClass = RISK_CLASS[data.risk] || '';
   const badge = RISK_LABELS[data.risk] || RISK_LABELS.unknown;
   const amtColor = AMOUNT_COLOR[data.risk] || '#555';
+  const dynamic = data.dynamic || '';
+  const suggestion = data.suggestion || '';
+  const companyName = escHtml(data.name);
   return `<tr class="${riskClass}" data-risk="${data.risk}">
     <td style="color:var(--text-light)">${idx + 1}</td>
-    <td><strong>${escHtml(data.name)}</strong></td>
+    <td><strong>${companyName}</strong></td>
     <td>${escHtml(data.parent)}</td>
     <td>${escHtml(data.area)}</td>
     <td style="color:${amtColor};font-weight:700">${escHtml(data.amount)}</td>
     <td>${escHtml(data.type)}</td>
     <td>${escHtml(data.inlist)}</td>
     <td>${escHtml(data.status)}</td>
+    <td class="dyn-cell" data-company="${data.name}">${dynamic
+      ? `<div class="dyn-info">${dynamic}</div>`
+      : '<span class="dyn-loading" style="color:#999;font-size:11px">待查询</span>'
+    }<button class="dyn-search-btn" onclick="searchDynamic(this)" title="联网搜索该平台最新动态">🔍</button></td>
     <td>${badge}</td>
-    <td>${escHtml(data.action)}</td>
+    <td style="font-size:11px">${escHtml(data.action)}</td>
+    <td style="font-size:11px;color:#2471a3;background:rgba(36,113,163,0.04)">${suggestion ? escHtml(suggestion) : '<span style="color:#aaa">—</span>'}</td>
     <td><button class="btn-del-row" onclick="delMonitorRow(this)">删除</button></td>
   </tr>`;
 }
@@ -1477,55 +1503,57 @@ function saveMonitorRows() {
       type: tr.cells[5]?.textContent || '',
       inlist: tr.cells[6]?.textContent || '',
       status: tr.cells[7]?.textContent || '',
-      action: tr.cells[9]?.textContent || ''
+      dynamic: tr.cells[8]?.querySelector('.dyn-info')?.textContent || '',
+      action: tr.cells[10]?.textContent || '',
+      suggestion: tr.cells[11]?.textContent || ''
     });
   });
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(rows)); } catch(e){}
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+    localStorage.setItem(STORAGE_VER_KEY, CURRENT_VER);
+  } catch(e){}
 }
 
 // ---- 预置台账数据（来自《欠我方工程款的甲方单位》分析，识别出的政府融资平台公司）----
 const PRESET_MONITOR_ROWS = [
   // ===== 天津滨海建投集团系 =====
-  { name:'天津滨海建投项目管理有限公司',         parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'关注母公司退出动态，及时主张债权' },
-  { name:'天津滨城美好生活服务有限责任公司',      parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'核实是否已启动名单退出程序' },
-  { name:'天津滨海城市更新建设发展有限公司',      parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'关注城市更新项目专项债还款安排' },
-  { name:'天津滨海新区高速公路投资发展有限公司',  parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',     action:'跟踪集团整体化债方案进展' },
-  { name:'天津滨海新区建投房地产开发有限公司',    parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'房地产板块风险较高，加快清收' },
-  { name:'天津市滨海新区城投建设发展有限公司',    parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'关注集团整体退出名单动态' },
-  { name:'天津滨海新区建投轨道交通建设有限公司',  parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'轨交项目关注专项债安排及还款来源' },
-  { name:'天津市滨海新区环境建设投资有限公司',    parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'环保类平台退出意愿强，提前介入' },
+  { name:'天津滨海建投项目管理有限公司',           parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区',   amount:'⚠️ -268.00万（我方欠款）',    type:'平台子公司',   inlist:'在册', status:'存续', risk:'high', action:'①核对我方欠款明细，确认是否为应付暂估或质保金；②如属我方欠款，优先办理结算抵扣；③同步关注母公司滨海建投集团退出名单进展，评估对方抵销主张风险', suggestion:'⚠️我方欠款，优先核对结算，防止对方在退出时主张抵销' },
+  { name:'天津滨城美好生活服务有限责任公司',        parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区',   amount:'1,234.29万',                  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high', action:'①立即发函要求书面确认债务金额及还款计划；②查询该司是否已在银保监融资平台名单中启动退出程序；③如退出公告发布，依据150号文及时申报债权并主张2/3债权人同意权', suggestion:'🔴高风险，立即书面确认债务，关注退出公告，做好150号文债权人维权准备' },
+  { name:'天津滨海城市更新建设发展有限公司',        parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区',   amount:'930.99万',                    type:'平台子公司',   inlist:'在册', status:'存续', risk:'high', action:'①核查城市更新项目是否有专项债资金安排，评估还款来源；②关注该司股权是否已划转至市场化主体（退出信号）；③每季度查询工商变更，发现注册资本/股东变化立即预警', suggestion:'关注专项债还款来源，股权划转=退出信号，须提前锁定债权' },
+  { name:'天津滨海新区高速公路投资发展有限公司',    parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区',   amount:'527.16万',                    type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',  action:'①跟踪滨海建投集团整体化债方案及退出计划；②关注高速公路收费权/特许经营权变更，评估对还款能力影响；③建议与滨海建投集团建立季度对接机制', suggestion:'跟踪母公司集团化债方案，建议建立季度对接机制' },
+  { name:'天津市滨海新区城投建设发展有限公司',      parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区',   amount:'3,069.71万',                  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high', action:'①金额较大，指定专人盯办，建立月度催收台账；②发律师函要求限期确认债务，留存书面证据；③关注该司资产注入/剥离动向，评估可执行财产线索；④如母公司启动退出，立即申报债权参与表决', suggestion:'🔴金额超3000万，指定专人盯办，发律师函+摸排财产，退出时立即申报债权' },
+  { name:'天津市滨海新区环境建设投资有限公司',      parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区',   amount:'1,303.91万',                  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high', action:'①环保类平台资产质量较好（有污水处理费等稳定现金流），退出意愿强，须在退出前锁定还款承诺；②核查该司名下环保项目是否有中央/地方专项资金可优先支付；③提前准备诉前保全材料，防止退出时资产被转移', suggestion:'环保平台现金流好、退出意愿强，须在退出前锁定还款承诺，提前准备诉前保全' },
   // ===== 泰达控股集团系 =====
-  { name:'天津泰达城市轨道投资发展有限公司',      parent:'泰达投资控股（集团）有限公司',     area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'mid',     action:'跟踪泰达轨交整体债务化解进展' },
-  { name:'天津泰达滨海站建设开发有限公司',        parent:'泰达投资控股（集团）有限公司',     area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'mid',     action:'关注泰达开发区整体清欠政策' },
-  { name:'天津开发区南部新兴产业区开发建设有限公司', parent:'泰达投资控股（集团）有限公司',   area:'天津经开区',   amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'产业区开发类平台关注资产注入及债务安排' },
-  { name:'天津开发区一汽大众基地开发建设有限公司', parent:'泰达投资控股（集团）有限公司',    area:'天津经开区',   amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'单一项目类平台退出风险较高，尽快推进清收' },
+  { name:'天津泰达城市轨道投资发展有限公司',        parent:'泰达投资控股（集团）有限公司',     area:'天津滨海新区',   amount:'⚠️ -2,628.68万（我方欠款）',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'mid',  action:'①金额较大且为我方欠款，立即核实结算状态，区分已完工未审计/未完工暂估；②如审计已定案，主动推进支付避免对方主张逾期利息；③关注泰达轨交债务重组安排，防止对方以抵销方式冲销我方债权', suggestion:'⚠️我方欠款超2600万，尽快核实结算，防止对方以债务重组抵销冲销我方权益' },
+  { name:'天津泰达滨海站建设开发有限公司',          parent:'泰达投资控股（集团）有限公司',     area:'天津滨海新区',   amount:'4,661.50万',                  type:'平台子公司',   inlist:'在册', status:'存续', risk:'mid',  action:'①金额超4600万，列为A类重点清收对象，指定分管领导督办；②发正式催款函并抄送泰达控股集团，利用集团清欠考核压力推动；③核查滨海站项目土地/物业资产，摸排可执行财产；④关注泰达控股整体改革转型动态，退出前锁定还款安排', suggestion:'A类重点（超4600万），抄送集团层面施压，摸排土地/物业资产' },
   // ===== 东疆系 =====
-  { name:'天津港东疆建设开发有限公司',            parent:'天津东疆发展有限公司',             area:'天津东疆',     amount:'待确认',  type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',     action:'跟踪东疆片区化债及退出计划' },
-  { name:'天津东疆产业服务有限公司',              parent:'天津东疆发展有限公司',             area:'天津东疆',     amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'mid',     action:'关注东疆自贸区整体平台改革动态' },
+  { name:'天津东疆产业服务有限公司',                parent:'天津东疆发展有限公司',             area:'天津东疆',       amount:'19.79万',                     type:'平台子公司',   inlist:'在册', status:'存续', risk:'mid',  action:'①金额较小（不足20万），纳入常规催收流程，季度发函即可；②关注东疆自贸区平台改革整体方案，一旦母公司启动退出，视情况调整催收策略；③如长期未收回，可在与其他东疆系单位谈判时打包处理', suggestion:'小额常规催收，可与其他东疆系单位打包谈判' },
   // ===== 天津其他平台 =====
-  { name:'天津市地下铁道集团有限公司',            parent:'天津市人民政府（市国资委）',       area:'天津市',       amount:'待确认',  type:'市级平台',     inlist:'在册', status:'存续', risk:'low',     action:'市级核心平台，清收预期较好，持续跟进' },
-  { name:'天津市南港工业区开发有限公司',           parent:'天津市人民政府/滨海新区政府',      area:'天津滨海新区', amount:'待确认',  type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',     action:'南港工业区开发重点跟踪' },
-  { name:'天津临港建设开发有限公司',              parent:'天津市临港投资控股有限公司',       area:'天津临港',     amount:'待确认',  type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',     action:'临港片区化债安排，关注港口资产处置' },
-  { name:'天津经济技术开发区南港发展集团有限公司', parent:'天津市人民政府/天津经开区管委',   area:'天津经开区',   amount:'待确认',  type:'平台集团',     inlist:'在册', status:'存续', risk:'mid',     action:'跟踪南港发展集团整体化债方案' },
-  { name:'京津冀城际铁路投资有限公司',            parent:'国铁集团+京津冀三地政府',         area:'京津冀',       amount:'待确认',  type:'政策性投融资', inlist:'在册', status:'存续', risk:'mid',     action:'国铁+地方共同出资，清收须走多方协商渠道' },
+  { name:'天津市地下铁道集团有限公司',              parent:'天津市人民政府（市国资委）',       area:'天津市',         amount:'535.26万',                    type:'市级平台',     inlist:'在册', status:'存续', risk:'low',  action:'①天津地铁为市属核心平台，清收违约风险低，按季度正常催收即可；②关注天津地铁IPO/混改进展，资本运作窗口期还款可能性增大；③如该司启动退出名单，主动对接市国资委确认债务承接安排', suggestion:'🟢市级核心平台风险低，正常催收，关注IPO/混改窗口期' },
+  { name:'天津市南港工业区开发有限公司',             parent:'天津市人民政府/滨海新区政府',      area:'天津滨海新区',   amount:'557.98万',                    type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',  action:'①关注南港工业区化工园区建设进度，评估园区企业入驻带来的税收增量对还款的支撑；②核查是否有专项债/特别国债资金拨付至该司；③与滨海新区财政局建立沟通渠道，了解该司退出时间表', suggestion:'核查专项债/国债资金拨付，对接新区财政局了解退出时间表' },
+  { name:'天津临港建设开发有限公司',                parent:'天津市临港投资控股有限公司',       area:'天津临港',       amount:'2,826.53万',                  type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',  action:'①金额超2800万，列为B类重点清收对象；②关注临港片区港口资产整合及临港投资控股重组动态；③核查临港区域土地出让/港口经营收入，评估还款来源；④发催款函并抄送临港管委会，利用行政层级施压', suggestion:'B类重点（超2800万），关注港口资产整合，抄送管委会施压' },
+  { name:'天津经济技术开发区南港发展集团有限公司',  parent:'天津市人民政府/天津经开区管委',    area:'天津经开区',     amount:'124.33万',                    type:'平台集团',     inlist:'在册', status:'存续', risk:'mid',  action:'①金额不大但属平台集团，关注其整体化债方案中是否包含清欠安排；②跟踪南港发展集团退出名单进展，如发布退出公告及时申报债权；③与天津经开区管委建立对接，利用管委会协调推动还款', suggestion:'关注集团化债方案，对接经开区管委推动还款' },
+  { name:'京津冀城际铁路投资有限公司',              parent:'国铁集团+京津冀三地政府',          area:'京津冀',         amount:'14,278.74万',                 type:'政策性投融资', inlist:'在册', status:'存续', risk:'mid',  action:'①⚡金额超1.4亿，列为S级重点盯办，总会计师直接督办；②国铁+三地政府合资，清收须走多方协商渠道，优先通过我方集团总部对接国铁集团层面；③关注京津冀城际铁路二期/三期项目资金拨付节点，在资金到位窗口期催收；④如对方启动融资平台退出，依据150号文及时申报债权并行使2/3债权人同意权', suggestion:'⚡S级重点（1.43亿），须我方集团总部对接国铁，窗口期催收，150号文债权人维权' },
   // ===== 沈阳城投集团系 =====
-  { name:'沈阳快速路建设投资有限公司',            parent:'沈阳市城市建设投资集团有限公司',   area:'辽宁沈阳',     amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'沈阳城投系退出压力大，立即启动清收程序' },
-  { name:'沈阳交通建设发展有限公司',              parent:'沈阳市城市建设投资集团有限公司',   area:'辽宁沈阳',     amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'沈阳交通建投名单退出风险高，保全证据' },
-  { name:'沈阳城投建设发展有限公司',              parent:'沈阳市城市建设投资集团有限公司',   area:'辽宁沈阳',     amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'沈阳城投系整体风险高，联动法律部门介入' },
-  { name:'沈阳市城乡建设投资发展有限公司',        parent:'沈阳市人民政府（市国资委）',       area:'辽宁沈阳',     amount:'待确认',  type:'市级平台',     inlist:'在册', status:'存续', risk:'mid',     action:'市级直属平台，积极推动清欠诉求' },
+  { name:'沈阳快速路建设投资有限公司',              parent:'沈阳市城市建设投资集团有限公司',   area:'辽宁沈阳',       amount:'961.06万',                    type:'平台子公司',   inlist:'在册', status:'存续', risk:'high', action:'①东北区域城投退出压力大、逃废债案例多，立即启动法律催收程序；②发律师函要求30日内书面确认债务，逾期视为认可；③核查该司名下快速路收费权/广告位等经营性资产，摸排可执行财产；④沈阳城投系如启动退出，立即向沈阳市金融局申报债权并主张异议权', suggestion:'🔴东北城投逃废债风险高，立即启动法律程序，退出时申报债权异议' },
+  { name:'沈阳交通建设发展有限公司',                parent:'沈阳市城市建设投资集团有限公司',   area:'辽宁沈阳',       amount:'2,558.27万',                  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high', action:'①金额超2500万，列为A类重点清收对象；②立即保全证据：调取施工合同、结算单、发票、往来函件，形成完整证据链；③关注沈阳交通建投是否已发布退出公告或启动资产重组；④如有退出迹象，立即申请诉前财产保全，冻结其银行账户及股权', suggestion:'🔴A类重点（超2500万），立即保全证据，退出迹象时申请诉前财产保全' },
+  { name:'沈阳城投建设发展有限公司',                parent:'沈阳市城市建设投资集团有限公司',   area:'辽宁沈阳',       amount:'2,682.16万',                  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high', action:'①金额超2600万+沈阳城投系整体风险高，联动法务部门优先立案；②同步查询沈阳城投建设发展在辽宁法院的涉诉情况，评估其资产是否已被其他债权人保全；③通过天眼查/企业预警通监控该司工商变更，发现股东变更/减资/注销等预警立即行动；④评估是否需要与其他债权人联合行动，增强议价能力', suggestion:'🔴法务优先立案，监控工商变更预警，评估联合债权人行动' },
+  { name:'沈阳市城乡建设投资发展有限公司',          parent:'沈阳市人民政府（市国资委）',       area:'辽宁沈阳',       amount:'67.56万',                     type:'市级平台',     inlist:'在册', status:'存续', risk:'mid',  action:'①金额较小，纳入常规催收流程；②该司为市国资委直属，清偿能力优于子公司，可通过市国资委信访/投诉渠道施压；③关注沈阳市化债整体方案，争取纳入集中清欠名单', suggestion:'市国资委直属，通过信访/投诉渠道施压，争取纳入集中清欠名单' },
   // ===== 呼和浩特 =====
-  { name:'呼和浩特市地铁实业有限公司',            parent:'呼和浩特城市交通投资建设集团有限公司', area:'内蒙古呼和浩特', amount:'待确认', type:'平台子公司', inlist:'在册', status:'存续', risk:'mid',  action:'关注呼和浩特地铁集团整体债务化解' },
+  { name:'呼和浩特市地铁实业有限公司',              parent:'呼和浩特城市交通投资建设集团有限公司', area:'内蒙古呼和浩特', amount:'316.87万',                type:'平台子公司',   inlist:'在册', status:'存续', risk:'mid',  action:'①关注呼和浩特地铁集团整体债务化解及退出安排；②内蒙古为化债重点省份，关注中央对蒙专项转移支付是否包含该集团清欠资金；③通过呼和浩特市国资委/金融办渠道了解该集团退出时间表，提前做好债权申报准备', suggestion:'内蒙古化债重点省份，关注中央转移支付清欠资金，提前准备债权申报' },
   // ===== 河北平台 =====
-  { name:'霸州鼎兴园区建设发展有限公司',          parent:'霸州市人民政府/霸州开发区管委',    area:'河北廊坊霸州', amount:'待确认',  type:'县级平台',     inlist:'在册', status:'存续', risk:'high',    action:'县级平台退出风险极高，尽快起诉保全' },
-  { name:'沧州市建设投资集团有限公司',            parent:'沧州市人民政府（市国资委）',       area:'河北沧州',     amount:'待确认',  type:'市级平台',     inlist:'在册', status:'存续', risk:'mid',     action:'市级平台，配合沧州市化债政策推进清收' },
+  { name:'霸州鼎兴园区建设发展有限公司',            parent:'霸州市人民政府/霸州开发区管委',    area:'河北廊坊霸州',   amount:'10,451.05万',                 type:'县级平台',     inlist:'在册', status:'存续', risk:'high', action:'①⚡金额超1亿+县级平台，逃废债风险极高，列为S级紧急督办；②立即启动诉前财产保全，冻结该司银行账户、股权、土地使用权等；③同步起诉霸州市政府（作为出资人承担补充责任）；④查询该司是否已进入退出程序，如已公告退出立即申报债权并提出异议；⑤联动集团法务部/外部律师，制定分步执行方案', suggestion:'⚡S级紧急（超1亿+县级），立即诉前保全+起诉政府，联动法务制定执行方案' },
+  { name:'沧州市建设投资集团有限公司',              parent:'沧州市人民政府（市国资委）',       area:'河北沧州',       amount:'15,857.92万',                 type:'市级平台',     inlist:'在册', status:'存续', risk:'mid',  action:'①⚡欠款金额最高（近1.6亿），列为S级重点，总会计师直接督办；②沧州建投为市级平台，清偿意愿和能力优于县级，优先走协商+行政协调渠道；③对接沧州市国资委/金融局，纳入河北省化债集中清欠名单；④关注沧州专项债发行及资金拨付，在资金到位窗口期重点催收；⑤每半年评估一次，如协商无进展则启动诉讼+保全', suggestion:'⚡S级重点（1.59亿最高），优先协商+行政协调，半年无进展则诉讼保全' },
   // ===== 河南平台 =====
-  { name:'安阳润达产业小镇建设发展有限公司',      parent:'安阳市城乡一体化示范区管委会',     area:'河南安阳',     amount:'待确认',  type:'园区平台',     inlist:'在册', status:'存续', risk:'high',    action:'产业园区专项债项目，关注债务化解安排' },
+  { name:'安阳润达产业小镇建设发展有限公司',        parent:'安阳市城乡一体化示范区管委会',     area:'河南安阳',       amount:'1,447.93万',                  type:'园区平台',     inlist:'在册', status:'存续', risk:'high', action:'①产业园区平台资产质量差（无稳定现金流），退出逃废债风险高；②立即发函要求书面确认债务，限定15日回复；③核查该司名下产业小镇土地/房产资产，摸排可执行财产；④关注安阳市城乡一体化示范区管委会是否已启动该司退出/清算程序；⑤评估诉讼成本收益，如资产不足可考虑追究出资人（管委会）连带责任', suggestion:'🔴资产质量差+逃废债风险高，发函确认债务，评估追究管委会连带责任' },
 ];
 
 function loadMonitorRows() {
   try {
+    const savedVer = localStorage.getItem(STORAGE_VER_KEY);
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
+    // 版本一致且有数据，直接加载
+    if (savedVer === CURRENT_VER && saved) {
       const rows = JSON.parse(saved);
       if (rows && rows.length) {
         const tbody = document.getElementById('monitorTbody');
@@ -1534,11 +1562,11 @@ function loadMonitorRows() {
         return;
       }
     }
-    // localStorage 无数据时，写入预置数据
+    // 版本不一致或无数据：写入最新预置数据
     const tbody = document.getElementById('monitorTbody');
     tbody.innerHTML = PRESET_MONITOR_ROWS.map((r,i) => buildMonitorRow(r,i)).join('');
     renumberMonitor();
-    saveMonitorRows(); // 保存到 localStorage，下次直接读取
+    saveMonitorRows();
   } catch(e){ console.warn('loadMonitorRows error', e); }
 }
 
@@ -1559,13 +1587,15 @@ function addMonitorRow() {
     type: document.getElementById('inp-type').value.trim(),
     inlist: document.getElementById('inp-inlist').value,
     status: document.getElementById('inp-status').value.trim() || '暂无动态',
+    dynamic: document.getElementById('inp-dynamic').value.trim(),
     risk: document.getElementById('inp-risk').value,
-    action: document.getElementById('inp-action').value.trim()
+    action: document.getElementById('inp-action').value.trim(),
+    suggestion: document.getElementById('inp-suggestion').value.trim()
   };
   const tbody = document.getElementById('monitorTbody');
   const idx = tbody.rows.length;
   tbody.insertAdjacentHTML('beforeend', buildMonitorRow(data, idx));
-  ['inp-name','inp-parent','inp-area','inp-amount','inp-type','inp-status','inp-action'].forEach(id => {
+  ['inp-name','inp-parent','inp-area','inp-amount','inp-type','inp-status','inp-dynamic','inp-action','inp-suggestion'].forEach(id => {
     document.getElementById(id).value = '';
   });
   renumberMonitor();
@@ -1597,10 +1627,238 @@ function resetMonitorToPreset() {
   alert('✅ 已恢复预置台账，共 ' + PRESET_MONITOR_ROWS.length + ' 家融资平台公司。');
 }
 
+// ============ 联网搜索平台动态 ============
+// 搜索关键词模板：公司名 + 化债/退出/股权变更
+const SEARCH_KEYWORDS_TEMPLATES = [
+  '{company} 融资平台退出',
+  '{company} 化债 债务重组',
+  '{company} 股权变更 工商变更',
+  '{parent} 融资平台退出 化债',
+];
+
+// 生成搜索URL
+function buildSearchUrls(companyName, parentName) {
+  const urls = [];
+  const queries = [];
+  // 甲方单位搜索
+  SEARCH_KEYWORDS_TEMPLATES.slice(0,3).forEach(t => {
+    queries.push(t.replace('{company}', companyName));
+  });
+  // 母公司搜索
+  if (parentName && parentName !== companyName) {
+    queries.push(SEARCH_KEYWORDS_TEMPLATES[3].replace('{parent}', parentName));
+  }
+  // 百度搜索
+  queries.forEach(q => {
+    urls.push({ source:'百度', url:'https://www.baidu.com/s?wd=' + encodeURIComponent(q), query: q });
+  });
+  // 天眼查搜索
+  urls.push({ source:'天眼查', url:'https://www.tianyancha.com/search?key=' + encodeURIComponent(companyName), query: companyName });
+  // 企业预警通搜索
+  urls.push({ source:'企业预警通', url:'https://www.qyyjt.cn/search?keyword=' + encodeURIComponent(companyName + ' 退出'), query: companyName });
+  // 信用中国
+  urls.push({ source:'信用中国', url:'https://www.creditchina.gov.cn/xinyongfuwu/tongyishehuixinyongdaima/?keyword=' + encodeURIComponent(companyName), query: companyName });
+  return urls;
+}
+
+// 单个🔍按钮搜索
+function searchDynamic(btn) {
+  const cell = btn.closest('.dyn-cell');
+  if (!cell) return;
+  const companyName = cell.dataset.company;
+  const tr = btn.closest('tr');
+  const parentName = tr?.cells[2]?.textContent?.trim() || '';
+  
+  // 弹出搜索面板
+  showSearchPanel(companyName, parentName, cell);
+}
+
+// 搜索面板
+function showSearchPanel(companyName, parentName, targetCell) {
+  // 移除已有面板
+  const existing = document.getElementById('dynSearchPanel');
+  if (existing) existing.remove();
+
+  const urls = buildSearchUrls(companyName, parentName);
+  const panel = document.createElement('div');
+  panel.id = 'dynSearchPanel';
+  panel.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);padding:24px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto;font-family:system-ui,sans-serif;';
+  
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="margin:0;font-size:16px;color:#2c3e50">🔍 搜索「${escHtml(companyName)}」最新动态</h3>
+      <button onclick="this.closest('#dynSearchPanel').remove()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#999">✕</button>
+    </div>
+    <div style="background:#fef9e7;border:1px solid #f9e79f;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:#7d6608">
+      <strong>📋 搜索说明</strong>：点击下方链接，在新窗口中查看该融资平台的最新化债/退出/股权动态。发现重要信息后，可在下方手动录入摘要。
+    </div>
+    <div style="margin-bottom:16px">
+      <strong style="font-size:14px;color:#2c3e50">🌐 快速搜索入口</strong>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+        ${urls.map(u => `<a href="${u.url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;padding:6px 12px;background:${u.source==='天眼查'?'#1a73e8':u.source==='企业预警通'?'#e67e22':u.source==='信用中国'?'#27ae60':'#3498db'};color:#fff;border-radius:6px;text-decoration:none;font-size:13px;gap:4px">${u.source} 🔗</a>`).join('')}
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <strong style="font-size:14px;color:#2c3e50">📝 录入动态摘要</strong>
+      <div style="margin-top:8px">
+        <textarea id="dynInput" rows="3" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;resize:vertical;box-sizing:border-box" placeholder="发现的重要动态摘要，如：2026年4月，该公司已公告启动融资平台退出程序，母公司股权划转至XX国资委…"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="saveDynResult()" style="padding:6px 16px;background:#2980b9;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">💾 保存到台账</button>
+        <button onclick="this.closest('#dynSearchPanel').remove()" style="padding:6px 16px;background:#95a5a6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">关闭</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(panel);
+  
+  // 点击遮罩关闭
+  const overlay = document.createElement('div');
+  overlay.id = 'dynSearchOverlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:9999;';
+  overlay.onclick = () => { panel.remove(); overlay.remove(); };
+  document.body.appendChild(overlay);
+  
+  // 保存当前target cell引用
+  panel._targetCell = targetCell;
+}
+
+// 保存动态搜索结果到台账单元格
+function saveDynResult() {
+  const panel = document.getElementById('dynSearchPanel');
+  if (!panel) return;
+  const input = document.getElementById('dynInput');
+  const text = input?.value?.trim();
+  if (!text) { alert('请输入动态摘要'); return; }
+  
+  const cell = panel._targetCell;
+  if (cell) {
+    const now = new Date();
+    const timeStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    cell.innerHTML = `<div class="dyn-info" style="font-size:12px;line-height:1.5"><span style="color:#27ae60;font-weight:600">📰 ${timeStr}</span><br/>${escHtml(text)}</div><button class="dyn-search-btn" onclick="searchDynamic(this)" title="重新搜索">🔍</button>`;
+    saveMonitorRows();
+  }
+  
+  // 关闭面板
+  panel.remove();
+  const overlay = document.getElementById('dynSearchOverlay');
+  if (overlay) overlay.remove();
+}
+
+// 批量刷新所有平台动态
+function refreshAllDynamics() {
+  const rows = document.querySelectorAll('#monitorTbody tr');
+  if (!rows.length) return;
+  
+  const companies = [];
+  rows.forEach(tr => {
+    const cell = tr.querySelector('.dyn-cell');
+    if (cell && cell.dataset.company) {
+      companies.push({ cell, name: cell.dataset.company, parent: tr.cells[2]?.textContent?.trim() || '' });
+    }
+  });
+  
+  if (!companies.length) return;
+  
+  // 为每个公司打开一个百度搜索窗口（批量模式，每次最多5个避免浏览器拦截）
+  const batchSize = 3;
+  let idx = 0;
+  
+  const panel = document.createElement('div');
+  panel.id = 'batchRefreshPanel';
+  panel.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);padding:24px;max-width:480px;width:90%;font-family:system-ui,sans-serif;';
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="margin:0;font-size:16px;color:#2c3e50">🔄 批量刷新平台动态</h3>
+      <button onclick="this.closest('#batchRefreshPanel').remove();document.getElementById('batchRefreshOverlay')?.remove()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#999">✕</button>
+    </div>
+    <div style="font-size:13px;color:#555;margin-bottom:12px">
+      将逐批打开搜索页面查询 <strong>${companies.length}</strong> 家平台公司的最新动态。<br/>
+      <span style="color:#c0392b">⚠️ 浏览器可能拦截弹窗，请点击地址栏右侧允许弹窗</span>
+    </div>
+    <div id="batchProgress" style="font-size:13px;color:#2980b9;margin-bottom:12px">准备开始…</div>
+    <div style="display:flex;gap:8px">
+      <button id="batchStartBtn" onclick="startBatchRefresh()" style="padding:8px 20px;background:#2980b9;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">▶ 开始查询</button>
+      <button onclick="this.closest('#batchRefreshPanel').remove();document.getElementById('batchRefreshOverlay')?.remove()" style="padding:8px 20px;background:#95a5a6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">关闭</button>
+    </div>
+    <div style="margin-top:16px;max-height:200px;overflow-y:auto;font-size:12px;color:#666" id="batchLog"></div>
+  `;
+  document.body.appendChild(panel);
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'batchRefreshOverlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:9999;';
+  document.body.appendChild(overlay);
+  
+  // 保存companies到全局供startBatchRefresh使用
+  window._batchCompanies = companies;
+}
+
+function startBatchRefresh() {
+  const companies = window._batchCompanies;
+  if (!companies || !companies.length) return;
+  
+  const startBtn = document.getElementById('batchStartBtn');
+  if (startBtn) startBtn.disabled = true;
+  
+  const progress = document.getElementById('batchProgress');
+  const log = document.getElementById('batchLog');
+  
+  let i = 0;
+  const batchSize = 3;
+  
+  function openNextBatch() {
+    if (i >= companies.length) {
+      if (progress) progress.innerHTML = '✅ 全部查询窗口已打开！<br/>请逐个查看搜索结果，发现重要信息后点击对应行的🔍按钮录入动态。';
+      if (startBtn) startBtn.disabled = false;
+      return;
+    }
+    
+    const end = Math.min(i + batchSize, companies.length);
+    if (progress) progress.textContent = `正在打开第 ${i+1}-${end} 家（共 ${companies.length} 家）…`;
+    
+    for (let j = i; j < end; j++) {
+      const c = companies[j];
+      const query = c.name + ' 融资平台退出 化债 2025 2026';
+      const url = 'https://www.baidu.com/s?wd=' + encodeURIComponent(query);
+      const w = window.open(url, '_blank');
+      if (log) {
+        log.innerHTML += `<div style="padding:3px 0;border-bottom:1px solid #eee">${j+1}. ${c.name} — <span style="color:${w?'#27ae60':'#c0392b'}">${w?'已打开':'⚠️被拦截'}</span></div>`;
+      }
+      // 标记该行动态单元格为"已查询"
+      const cell = c.cell;
+      if (cell && !cell.querySelector('.dyn-info')) {
+        const now = new Date();
+        const timeStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+        cell.innerHTML = `<span style="color:#2980b9;font-size:11px">🔄 已查询 ${timeStr}，待录入</span><button class="dyn-search-btn" onclick="searchDynamic(this)" title="录入搜索结果">📝</button>`;
+      }
+    }
+    
+    i = end;
+    setTimeout(openNextBatch, 2000); // 每批间隔2秒
+  }
+  
+  openNextBatch();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const pc = document.getElementById('presetCount');
   if (pc) pc.textContent = PRESET_MONITOR_ROWS.length;
   loadMonitorRows();
+  
+  // 页面加载后，自动检查各平台公司是否有动态记录，提示用户刷新
+  setTimeout(() => {
+    const dynCells = document.querySelectorAll('#monitorTbody .dyn-cell');
+    const needSearch = Array.from(dynCells).filter(c => !c.querySelector('.dyn-info')).length;
+    if (needSearch > 0) {
+      // 在台账区域顶部显示提示条
+      const tip = document.createElement('div');
+      tip.id = 'dynRefreshTip';
+      tip.style.cssText = 'background:linear-gradient(135deg,#fef9e7,#fdebd0);border:1px solid #f9e79f;border-radius:8px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px;color:#7d6608;';
+      tip.innerHTML = `<span>🔄 <strong>${needSearch}</strong> 家融资平台尚无动态记录，点击「🔄 刷新全部」联网搜索最新化债/退出/股权变更信息</span><button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;font-size:16px;cursor:pointer;color:#999">✕</button>`;
+      const tableWrap = document.querySelector('.monitor-table-wrap');
+      if (tableWrap) tableWrap.parentElement.insertBefore(tip, tableWrap);
+    }
+  }, 1000);
 });
 </script>
 </body>
