@@ -960,14 +960,15 @@
           </tfoot>
         </table>
       </div>
-      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
         <button class="time-btn active" onclick="filterMonitor('all',this)">全部</button>
         <button class="time-btn" onclick="filterMonitor('high',this)">🔴 高风险</button>
         <button class="time-btn" onclick="filterMonitor('mid',this)">🟡 中风险</button>
         <button class="time-btn" onclick="filterMonitor('low',this)">🟢 低风险</button>
         <button class="time-btn" onclick="filterMonitor('unknown',this)">⚪ 待评估</button>
+        <button class="time-btn" onclick="resetMonitorToPreset()" style="background:rgba(192,57,43,0.1);color:#c0392b;border-color:rgba(192,57,43,0.3)" title="清除本地自定义数据，恢复系统预置的融资平台台账">🔄 恢复预置台账</button>
         <span style="margin-left:auto;font-size:12px;color:var(--text-light);align-self:center">
-          💾 台账数据已自动保存至本地，刷新后不丢失
+          💾 台账自动保存 · 共预置 <strong id="presetCount">0</strong> 家融资平台 · 可手动增删
         </span>
       </div>
 
@@ -1482,16 +1483,63 @@ function saveMonitorRows() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(rows)); } catch(e){}
 }
 
+// ---- 预置台账数据（来自《欠我方工程款的甲方单位》分析，识别出的政府融资平台公司）----
+const PRESET_MONITOR_ROWS = [
+  // ===== 天津滨海建投集团系 =====
+  { name:'天津滨海建投项目管理有限公司',         parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'关注母公司退出动态，及时主张债权' },
+  { name:'天津滨城美好生活服务有限责任公司',      parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'核实是否已启动名单退出程序' },
+  { name:'天津滨海城市更新建设发展有限公司',      parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'关注城市更新项目专项债还款安排' },
+  { name:'天津滨海新区高速公路投资发展有限公司',  parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',     action:'跟踪集团整体化债方案进展' },
+  { name:'天津滨海新区建投房地产开发有限公司',    parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'房地产板块风险较高，加快清收' },
+  { name:'天津市滨海新区城投建设发展有限公司',    parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'关注集团整体退出名单动态' },
+  { name:'天津滨海新区建投轨道交通建设有限公司',  parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'轨交项目关注专项债安排及还款来源' },
+  { name:'天津市滨海新区环境建设投资有限公司',    parent:'天津滨海新区建设投资集团有限公司', area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'环保类平台退出意愿强，提前介入' },
+  // ===== 泰达控股集团系 =====
+  { name:'天津泰达城市轨道投资发展有限公司',      parent:'泰达投资控股（集团）有限公司',     area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'mid',     action:'跟踪泰达轨交整体债务化解进展' },
+  { name:'天津泰达滨海站建设开发有限公司',        parent:'泰达投资控股（集团）有限公司',     area:'天津滨海新区', amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'mid',     action:'关注泰达开发区整体清欠政策' },
+  { name:'天津开发区南部新兴产业区开发建设有限公司', parent:'泰达投资控股（集团）有限公司',   area:'天津经开区',   amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'产业区开发类平台关注资产注入及债务安排' },
+  { name:'天津开发区一汽大众基地开发建设有限公司', parent:'泰达投资控股（集团）有限公司',    area:'天津经开区',   amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'单一项目类平台退出风险较高，尽快推进清收' },
+  // ===== 东疆系 =====
+  { name:'天津港东疆建设开发有限公司',            parent:'天津东疆发展有限公司',             area:'天津东疆',     amount:'待确认',  type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',     action:'跟踪东疆片区化债及退出计划' },
+  { name:'天津东疆产业服务有限公司',              parent:'天津东疆发展有限公司',             area:'天津东疆',     amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'mid',     action:'关注东疆自贸区整体平台改革动态' },
+  // ===== 天津其他平台 =====
+  { name:'天津市地下铁道集团有限公司',            parent:'天津市人民政府（市国资委）',       area:'天津市',       amount:'待确认',  type:'市级平台',     inlist:'在册', status:'存续', risk:'low',     action:'市级核心平台，清收预期较好，持续跟进' },
+  { name:'天津市南港工业区开发有限公司',           parent:'天津市人民政府/滨海新区政府',      area:'天津滨海新区', amount:'待确认',  type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',     action:'南港工业区开发重点跟踪' },
+  { name:'天津临港建设开发有限公司',              parent:'天津市临港投资控股有限公司',       area:'天津临港',     amount:'待确认',  type:'平台核心企业', inlist:'在册', status:'存续', risk:'mid',     action:'临港片区化债安排，关注港口资产处置' },
+  { name:'天津经济技术开发区南港发展集团有限公司', parent:'天津市人民政府/天津经开区管委',   area:'天津经开区',   amount:'待确认',  type:'平台集团',     inlist:'在册', status:'存续', risk:'mid',     action:'跟踪南港发展集团整体化债方案' },
+  { name:'京津冀城际铁路投资有限公司',            parent:'国铁集团+京津冀三地政府',         area:'京津冀',       amount:'待确认',  type:'政策性投融资', inlist:'在册', status:'存续', risk:'mid',     action:'国铁+地方共同出资，清收须走多方协商渠道' },
+  // ===== 沈阳城投集团系 =====
+  { name:'沈阳快速路建设投资有限公司',            parent:'沈阳市城市建设投资集团有限公司',   area:'辽宁沈阳',     amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'沈阳城投系退出压力大，立即启动清收程序' },
+  { name:'沈阳交通建设发展有限公司',              parent:'沈阳市城市建设投资集团有限公司',   area:'辽宁沈阳',     amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'沈阳交通建投名单退出风险高，保全证据' },
+  { name:'沈阳城投建设发展有限公司',              parent:'沈阳市城市建设投资集团有限公司',   area:'辽宁沈阳',     amount:'待确认',  type:'平台子公司',   inlist:'在册', status:'存续', risk:'high',    action:'沈阳城投系整体风险高，联动法律部门介入' },
+  { name:'沈阳市城乡建设投资发展有限公司',        parent:'沈阳市人民政府（市国资委）',       area:'辽宁沈阳',     amount:'待确认',  type:'市级平台',     inlist:'在册', status:'存续', risk:'mid',     action:'市级直属平台，积极推动清欠诉求' },
+  // ===== 呼和浩特 =====
+  { name:'呼和浩特市地铁实业有限公司',            parent:'呼和浩特城市交通投资建设集团有限公司', area:'内蒙古呼和浩特', amount:'待确认', type:'平台子公司', inlist:'在册', status:'存续', risk:'mid',  action:'关注呼和浩特地铁集团整体债务化解' },
+  // ===== 河北平台 =====
+  { name:'霸州鼎兴园区建设发展有限公司',          parent:'霸州市人民政府/霸州开发区管委',    area:'河北廊坊霸州', amount:'待确认',  type:'县级平台',     inlist:'在册', status:'存续', risk:'high',    action:'县级平台退出风险极高，尽快起诉保全' },
+  { name:'沧州市建设投资集团有限公司',            parent:'沧州市人民政府（市国资委）',       area:'河北沧州',     amount:'待确认',  type:'市级平台',     inlist:'在册', status:'存续', risk:'mid',     action:'市级平台，配合沧州市化债政策推进清收' },
+  // ===== 河南平台 =====
+  { name:'安阳润达产业小镇建设发展有限公司',      parent:'安阳市城乡一体化示范区管委会',     area:'河南安阳',     amount:'待确认',  type:'园区平台',     inlist:'在册', status:'存续', risk:'high',    action:'产业园区专项债项目，关注债务化解安排' },
+];
+
 function loadMonitorRows() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-    const rows = JSON.parse(saved);
-    if (!rows.length) return;
+    if (saved) {
+      const rows = JSON.parse(saved);
+      if (rows && rows.length) {
+        const tbody = document.getElementById('monitorTbody');
+        tbody.innerHTML = rows.map((r,i) => buildMonitorRow(r,i)).join('');
+        renumberMonitor();
+        return;
+      }
+    }
+    // localStorage 无数据时，写入预置数据
     const tbody = document.getElementById('monitorTbody');
-    tbody.innerHTML = rows.map((r,i) => buildMonitorRow(r,i)).join('');
+    tbody.innerHTML = PRESET_MONITOR_ROWS.map((r,i) => buildMonitorRow(r,i)).join('');
     renumberMonitor();
-  } catch(e){}
+    saveMonitorRows(); // 保存到 localStorage，下次直接读取
+  } catch(e){ console.warn('loadMonitorRows error', e); }
 }
 
 function renumberMonitor() {
@@ -1539,7 +1587,19 @@ function filterMonitor(risk, btn) {
   });
 }
 
+function resetMonitorToPreset() {
+  if (!confirm('确认恢复系统预置融资平台台账？\n（将清除您当前的所有自定义记录，不可撤销）')) return;
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+  const tbody = document.getElementById('monitorTbody');
+  tbody.innerHTML = PRESET_MONITOR_ROWS.map((r,i) => buildMonitorRow(r,i)).join('');
+  renumberMonitor();
+  saveMonitorRows();
+  alert('✅ 已恢复预置台账，共 ' + PRESET_MONITOR_ROWS.length + ' 家融资平台公司。');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  const pc = document.getElementById('presetCount');
+  if (pc) pc.textContent = PRESET_MONITOR_ROWS.length;
   loadMonitorRows();
 });
 </script>
